@@ -5,6 +5,7 @@ import pygame, os, math, sys
 WIDTH, HEIGHT = 1244, 700
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 Track = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets", "Picture 1.png")), 0, 2.4)
+# Add an ICON Later on
 
 # Car 
 class PlayerCar(pygame.sprite.Sprite):
@@ -23,7 +24,7 @@ class PlayerCar(pygame.sprite.Sprite):
     def drive(self):
         if self.drive_state:
             self.rect.center += self.vel_vector *6
-    
+            
     def update(self): 
         self.drive()
 
@@ -42,7 +43,7 @@ while run:
             car.sprite.direction = 0
                 
 
-            #drive
+        #drive
         if user_input[pygame.K_UP]:
             car.sprite.drive_state = True
         if user_input[pygame.K_RIGHT]:
