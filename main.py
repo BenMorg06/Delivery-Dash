@@ -8,8 +8,9 @@ SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 
 # Define images
 TRACK = pygame.image.load(os.path.join("Assets","city map 1.png"))
+TRACK_BORDER = pygame.image.load(os.path.join("Assets", "map_grass.png"))
 RED_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","car_red_small_4.png")), 180, 0.5)
-
+SMALLER_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","car_red_small_4.png")), 180, 0.4)
 # Define matrix
 # 1 means that the car can use that tile to travel
 # 0 means that the car cannot use that square
@@ -32,6 +33,8 @@ Track_Grid = [[1,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],#
 # Track collisions
 # I will no longer be using a mask for the track collisions because it will be more efficient for time and ease of code.
 # These collisions will be added once the car is created
+TRACK_BORDER_MASK = pygame.mask.from_surface(TRACK_BORDER) # after re-evluating the solution i decided that a mask would be the best solution for car and track collisions.
+
 
 # img utils
 def blit_rotate_centre(win, img, top_left, angle):
@@ -52,6 +55,7 @@ class AbsractCar():
         self.angle = 0 # car starts unrotated
         self.x, self.y = self.START_POS
         self.acceleration = 0.1 # every frame the velocity increases by 0.1 pixels
+        self.rect = self.img.get_rect()
 
 
     def rotate(self, left=False, right=False):
@@ -82,13 +86,25 @@ class AbsractCar():
 
     def draw(self, win):
         blit_rotate_centre(win,self.img, (self.x,self.y), self.angle)
+
+    def collide(self, mask, x=0, y=-0):
+        car_mask = pygame.mask.from_surface(SMALLER_CAR)
+        offset = (self.x -x, self.y-y) 
+        poi = mask.overlap(car_mask, offset)
+        return poi
+
+    def bounce(self):
+        self.vel = -self.vel/2
+        self.move()
+
 class PlayerCar(AbsractCar):
     IMG = RED_CAR
     START_POS = 20,20
+
 #print(Track_Grid)
 # Main loop
 run = True
-player_car = PlayerCar(2,4)
+player_car = PlayerCar(1,3)
 while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -109,6 +125,13 @@ while run:
     if not moved:
         player_car.reduce_speed()
 
+    # collisions
+    if player_car.collide(TRACK_BORDER_MASK) != None: #When the car is not touching the road this if occurs
+        player_car.bounce()
+
+    if player_car.x <= 0 or player_car.y <= 0 or player_car.x >= WIDTH or player_car.y >= HEIGHT:
+        player_car.bounce()
+    
 
     SCREEN.fill((0,200,0))
     SCREEN.blit(TRACK,(0,0))
