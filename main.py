@@ -216,16 +216,19 @@ while run:
     SCREEN.blit(TRACK,(0,0))
     #SCREEN.blit(PARCEL,(30,90))
     player_car.draw(SCREEN)
+
     for parcel in parcels:
         parcel.draw(SCREEN)
         parcel.update()
 
     player_car.update()
+    
     if player_car.points == 5:
         text = font.render(f"Score: {player_car.points}, Player Wins!", False, "#ffffff", (0,200,0))
     else:
         text = font.render(f"Score: {player_car.points}", False, "#ffffff", (0,200,0))
     SCREEN.blit(text, textRect)
+    
 
     pygame.display.update()
     clock.tick(60)
