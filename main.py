@@ -1,29 +1,25 @@
-#Important notes for Development
-# Cars collisions with the map are extremely buggy and do not work properly, I will aim to fix this over christmas
-# I need a function that can be used to connect the coordinates to the matrix
-
 # Imports
 import pygame, os, math, random
-from pathfinding.core.grid import Grid
+from pathfinding.core.grid import Grid # imports libraries needed for AI pathfinding
 from pathfinding.finder.a_star import AStarFinder
-pygame.init()
+pygame.init() #initiates pygame library
 
 # Setup Pygame Window
-pygame.display.set_caption("Delivery Dash")
+pygame.display.set_caption("Delivery Dash") # sets name of window
 # Define constants
-WIDTH, HEIGHT = 1244, 700
-SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
+WIDTH, HEIGHT = 1244, 700 # declares width and height of window as constants so that can be changed easily and remain consistent
+SCREEN = pygame.display.set_mode((WIDTH, HEIGHT)) # sets dimensions of window
 
 # Set pygame font
-font = pygame.font.Font('freesansbold.ttf', 32)
+font = pygame.font.Font('freesansbold.ttf', 32) # sets font for text
 
 # Define images
 TRACK = pygame.image.load(os.path.join("Assets","city map 1.png"))
 TRACK_BORDER = pygame.image.load(os.path.join("Assets", "map_grass.png")) # draw with rectangles potentially
-RED_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","car_red_small_4.png")), 180, 0.5)
+RED_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","car_red_small_4.png")), 180, 0.5) # scales images to the correct size
 SMALLER_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","car_red_small_4.png")), 180, 0.1)
-
 PARCEL = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","parcel.png")), 0, 0.1)
+
 # Define matrix
 # 1 means that the car can use that tile to travel
 # 0 means that the car cannot use that square
@@ -46,8 +42,6 @@ Track_Grid = [[1,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],#
 # Each element of the matrix represents a 48x48 tile on the screen
 
 # Track collisions
-# I will no longer be using a mask for the track collisions because it will be more efficient for time and ease of code.
-# These collisions will be added once the car is created
 TRACK_BORDER_MASK = pygame.mask.from_surface(TRACK_BORDER) # after re-evluating the solution i decided that a mask would be the best solution for car and track collisions.
 
 
@@ -73,13 +67,9 @@ class AbsractCar():
         self.rect = self.img.get_rect()
         self.rect.center = (self.x,self.y)
         self.points = 0
-        self.path = 0
-        self.runs = 0
-        self.hasPath = False
-        self.pos = self.rect.center
-
 
     def rotate(self, left=False, right=False):
+        # rotates the car depending on keys pressed
         if left:
             self.angle+=self.rotation_vel
         elif right:
@@ -91,10 +81,12 @@ class AbsractCar():
         self.move()
 
     def move_backward(self):
-        self.vel = max(self.vel - self.acceleration, -self.max_vel)
+        # move backwards the max velocity is half forward max velocity
+        self.vel = max(self.vel - self.acceleration, -self.max_vel/2)
         self.move()
 
     def move(self):
+        # cmoves the car at the angle of rotation multiplied by the velocity
         radians = math.radians(self.angle)
         vertical = math.cos(radians)*self.vel
         horizontal = math.sin(radians)*self.vel
@@ -102,29 +94,34 @@ class AbsractCar():
         self.x += horizontal
 
     def reduce_speed(self):
+        #picks the max value between 0 and velocity - acceleration as it slows down the car
         self.vel = max(self.vel-self.acceleration/2, 0)
         self.move()
 
     def draw(self, win):
+        # draws the car using the blit rotate function
         blit_rotate_centre(win,self.img, (self.x,self.y), self.angle)
 
     def collide(self, mask, x=-20, y=-20):
+        # creates a mask for the car and uses pygame library for collision detection
         car_mask = pygame.mask.from_surface(SMALLER_CAR)
         offset = (self.x -x, self.y-y) 
         poi = mask.overlap(car_mask, offset)
-        return poi
+        return poi # returns point of intersection if there is one, if not returns False
 
     def bounce(self):
+        # car bounces off collisions
         self.vel = -self.vel/2
         self.move()
 
-    def deliver_parcel(self,parcel, parcels):
-        if self.rect.colliderect(parcel):
-            parcels.remove(parcel)
-            self.points +=1
+    def deliver_parcel(self,parcel, parcels): 
+        if self.rect.colliderect(parcel): #Checks for collision between car rectangle and parcel rectangle
+            parcels.remove(parcel) # removes collided parcel from sprite group
+            self.points +=1 # increments player points by 1
             
 
     def update(self):
+        # sets the rectangle center to new x and y values
         self.rect.center = (self.x,self.y)
 
 class PlayerCar(AbsractCar):
@@ -141,17 +138,19 @@ class Parcel(pygame.sprite.Sprite):
         self.rect.center = (self.x,self.y)
 
     def draw(self, screen):
-        screen.blit(self.image,(self.x,self.y))
+        screen.blit(self.image,(self.x,self.y)) # draws the parcel to the screen
 
     def update(self):
-        self.rect.center = (self.x,self.y)
+        self.rect.center = (self.x,self.y) # updates the centre of the rectangle with new coords
 
 #print(Track_Grid)
 # Instantiating player car
 player_car = PlayerCar(1,3)
-text = font.render(f"Score: {player_car.points}", False, "#ffffff", (0,200,0))
+
+# Create Text
+text = font.render(f"Score: {player_car.points}", False, "#ffffff", (0,200,0)) # 
 textRect = text.get_rect()
- # set the center of the rectangular object.
+# Set the center of the rectangular object.
 textRect.center = (600,650)
 
 # creating parcels list
@@ -180,7 +179,6 @@ for i in range(13):
 
 # Main Loop
 run = True
-clock = pygame.time.Clock()
 while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -222,13 +220,9 @@ while run:
         parcel.update()
 
     player_car.update()
-    
     if player_car.points == 5:
         text = font.render(f"Score: {player_car.points}, Player Wins!", False, "#ffffff", (0,200,0))
     else:
         text = font.render(f"Score: {player_car.points}", False, "#ffffff", (0,200,0))
     SCREEN.blit(text, textRect)
-    
-
     pygame.display.update()
-    clock.tick(60)

@@ -138,7 +138,7 @@ class Pathfinder:
 		# setup
 		self.matrix = matrix
 		self.grid = Grid(matrix = matrix)
-		self.select_surf = pygame.image.load('selection.png').convert_alpha()
+		self.select_surf = pygame.transform.rotozoom(pygame.image.load('selection.png').convert_alpha(),0,1.5)
 
 		# pathfinding
 		self.path = []
@@ -166,7 +166,7 @@ class Pathfinder:
 
 		# end
 		mouse_pos = pygame.mouse.get_pos()
-		end_x,end_y =  mouse_pos[0] // 48, mouse_pos[1] // 48
+		end_x,end_y =  mouse_pos[0] // 48, mouse_pos[1] // 48 # End position should be coords of a parcel in the sprite group
 		end = self.grid.node(end_x,end_y) 
 
 		# path
@@ -180,8 +180,8 @@ class Pathfinder:
 		if self.path:
 			points = []
 			for point in self.path:
-				x = (point[0] * 48) 
-				y = (point[1] * 48) 
+				x = (point[0] * 48) +24
+				y = (point[1] * 48) +24
 				points.append((x,y))
 
 			pygame.draw.lines(SCREEN,'#4a4a4a',False,points,5)
@@ -200,7 +200,7 @@ class Roomba(pygame.sprite.Sprite):
 		# basic
 		super().__init__()
 		self.image = pygame.image.load('roomba.png').convert_alpha()
-		self.rect = self.image.get_rect(center = (60,60))
+		self.rect = self.image.get_rect(center = (20,20))
 
 		# movement 
 		self.pos = self.rect.center
@@ -226,8 +226,8 @@ class Roomba(pygame.sprite.Sprite):
 		if self.path:
 			self.collision_rects = []
 			for point in self.path:
-				x = (point[0] * 48) 
-				y = (point[1] * 48) 
+				x = (point[0] * 48) +24
+				y = (point[1] * 48) +24
 				rect = pygame.Rect((x - 2,y - 2),(4,4))
 				self.collision_rects.append(rect)
 
