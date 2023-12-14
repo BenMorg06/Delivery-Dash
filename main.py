@@ -18,6 +18,7 @@ TRACK = pygame.image.load(os.path.join("Assets","city map 1.png"))
 TRACK_BORDER = pygame.image.load(os.path.join("Assets", "map_grass.png")) # draw with rectangles potentially
 RED_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","car_red_small_4.png")), 180, 0.5) # scales images to the correct size
 SMALLER_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","car_red_small_4.png")), 180, 0.1)
+YELLOW_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","car_yellow_small_4.png")), 180, 0.5)
 PARCEL = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","parcel.png")), 0, 0.1)
 
 # Define matrix
@@ -64,8 +65,7 @@ class AbsractCar():
         self.angle = 0 # car starts unrotated
         self.x, self.y = self.START_POS
         self.acceleration = 0.1 # every frame the velocity increases by 0.1 pixels
-        self.rect = self.img.get_rect()
-        self.rect.center = (self.x,self.y)
+        self.rect = self.img.get_rect(center = (self.x,self.y))
         self.points = 0
 
     def rotate(self, left=False, right=False):
@@ -102,9 +102,9 @@ class AbsractCar():
         # draws the car using the blit rotate function
         blit_rotate_centre(win,self.img, (self.x,self.y), self.angle)
 
-    def collide(self, mask, x=-20, y=-20):
+    def collide(self, mask, x=0, y=0):
         # creates a mask for the car and uses pygame library for collision detection
-        car_mask = pygame.mask.from_surface(SMALLER_CAR)
+        car_mask = pygame.mask.from_surface(self.img)
         offset = (self.x -x, self.y-y) 
         poi = mask.overlap(car_mask, offset)
         return poi # returns point of intersection if there is one, if not returns False
@@ -120,13 +120,145 @@ class AbsractCar():
             self.points +=1 # increments player points by 1
             
 
+# Create player car class
+class PlayerCar(AbsractCar):
+    IMG = RED_CAR
+    START_POS = 13,24
+
     def update(self):
         # sets the rectangle center to new x and y values
         self.rect.center = (self.x,self.y)
 
-class PlayerCar(AbsractCar):
-    IMG = RED_CAR
-    START_POS = 13,24
+# Create AI class
+class Pathfinder:
+    def __init__(self, matrix):
+        # setup
+        self.matrix = matrix
+        self.grid = Grid(matrix=matrix)
+        
+        # pathfinding
+        self.path =[]
+
+        # AI Car
+        self.car = AICar(3,1, self.empty_path)
+    
+    def empty_path(self):
+        self.path = []
+    
+    def create_path(self):
+        # start 
+        start_x, start_y = int(self.car.pos[0]//48), int(self.car.pos[1]//48)
+        start = self.grid.node(start_x, start_y)
+
+        # end
+        parcel_list = []
+        for parcel in parcels:
+            parcel_list.append(parcel)
+        print(parcel_list)
+        end_x, end_y = int(parcel_list[0].x//48), int(parcel_list[0].y//48)
+        end = self.grid.node(end_x, end_y)
+
+        # path
+        finder = AStarFinder()
+        self.path_nodes,_ = finder.find_path(start, end, self.grid)
+        self.path = [(gridnode.x, gridnode.y) for gridnode in self.path_nodes]
+        self.car.set_path(self.path)
+        print(self.path_nodes)
+
+    def draw_path(self):
+        if self.path:
+            points = []
+            for point in self.path:
+                x = (point[0]*48)+24
+                y = (point[1]*48)+24
+                points.append((x,y))
+
+            pygame.draw.lines(SCREEN, '#4a4a4a', False, points, 5)
+    
+    def update(self):
+        self.draw_path()
+
+        # car
+        self.car.update()
+        self.car.draw(SCREEN)
+
+class AICar(AbsractCar):
+    IMG = YELLOW_CAR
+    START_POS = 23,24
+
+    def __init__(self, max_vel, rotation_vel ,empty_path):
+        super().__init__(max_vel, rotation_vel)
+        # print('Initialized'); testing
+
+        # movement
+        self.rect = self.img.get_rect(center = (self.x,self.y))
+        self.pos = self.rect.center
+        self.direction = pygame.math.Vector2(0,0)
+
+        # path
+        self.path = []
+        self.collision_rects = []
+        self.empty_path = empty_path
+        self.haspath = False
+
+    def get_coords(self):
+        col = self.rect.centerx // 48
+        row = self.rect.centery //48
+        return col, row
+    
+    def set_path(self, path):
+        self.path = path
+        self.create_collision_rects()
+        self.get_direction()
+
+    def create_collision_rects(self):
+        if self.path:
+            self.collision_rects = []
+            for point in self.path:
+                x = (point[0] *48) +24
+                y = (point[1] *48) +24
+                rect = pygame.Rect((x-2,y-2),(4,4))
+                self.collision_rects.append(rect)
+    
+    def get_direction(self):
+        if self.collision_rects:
+            start = pygame.math.Vector2(self.pos)
+            end = pygame.math.Vector2(self.collision_rects[0].center)
+            self.direction = (end - start).normalize()
+            
+        else:
+            self.direction = pygame.math.Vector2(0,0)
+            self.path = []
+
+    def check_collisions(self):
+        if self.collision_rects:
+            for rect in self.collision_rects:
+                if rect.collidepoint(self.pos):
+                    del self.collision_rects[0]
+                    self.get_direction()
+        else:
+            self.empty_path
+    
+    def get_angle(self):
+        pass
+
+    def draw(self, win):
+        self.get_angle()
+        blit_rotate_centre(win,self.img, (self.rect.center), self.angle)
+    
+    def deliver_parcel(self,parcel, parcels): 
+        if self.rect.colliderect(parcel): #Checks for collision between car rectangle and parcel rectangle
+            parcels.remove(parcel) # removes collided parcel from sprite group
+            self.points +=1 # increments player points by 1
+            self.haspath = False
+            print(parcels)
+    
+    def update(self):
+        self.pos += self.direction * 2
+        self.check_collisions()
+        self.rect.center = self.pos
+    
+
 
 class Parcel(pygame.sprite.Sprite):
     def __init__(self, x,y):
@@ -177,6 +309,9 @@ for i in range(13):
             print(Track_Grid[i][j])
 '''
 
+# Pathfinder
+pathfinder = Pathfinder(Track_Grid)
+
 # Main Loop
 run = True
 while run:
@@ -208,6 +343,7 @@ while run:
     
     for parcel in parcels:
         player_car.deliver_parcel(parcel,parcels)
+        pathfinder.car.deliver_parcel(parcel,parcels)
 
 
     SCREEN.fill((0,200,0))
@@ -219,7 +355,12 @@ while run:
         parcel.draw(SCREEN)
         parcel.update()
 
+    if len(parcels)>0 and pathfinder.car.haspath == False:
+        pathfinder.create_path()
+        pathfinder.car.haspath= True
+
     player_car.update()
+    pathfinder.update()
     if player_car.points == 5:
         text = font.render(f"Score: {player_car.points}, Player Wins!", False, "#ffffff", (0,200,0))
     else:

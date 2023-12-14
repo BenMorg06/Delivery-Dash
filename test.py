@@ -72,8 +72,7 @@ class AbsractCar():
         self.angle = 0 # car starts unrotated
         self.x, self.y = self.START_POS
         self.acceleration = 0.1 # every frame the velocity increases by 0.1 pixels
-        self.rect = self.img.get_rect()
-        self.rect.center = (self.x,self.y)
+        self.rect = self.img.get_rect(center = (self.x,self.y))
         self.points = 0
         self.path = 0
         self.runs = 0
