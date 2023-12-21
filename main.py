@@ -290,7 +290,7 @@ deliveries = 3
 parcels = pygame.sprite.Group()
 track_mask = pygame.mask.from_surface(TRACK)
 
-while len(parcels) != 5:
+while len(parcels) != 5: # THis could be done inside the parcels class to encapsulate the code.
     row = random.randint(1,13)
     col = random.randint(1,24)
     if Track_Grid[row][col] ==1:
