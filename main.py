@@ -1,50 +1,19 @@
 # Imports
 import pygame, os, math, random
+from consts import *
 from pathfinding.core.grid import Grid # imports libraries needed for AI pathfinding
 from pathfinding.finder.a_star import AStarFinder
 pygame.init() #initiates pygame library
 
 # Setup Pygame Window
 pygame.display.set_caption("Delivery Dash") # sets name of window
-# Define constants
-WIDTH, HEIGHT = 1244, 700 # declares width and height of window as constants so that can be changed easily and remain consistent
+# Define Screen
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT)) # sets dimensions of window
 
-# Set pygame font
-font = pygame.font.Font('freesansbold.ttf', 32) # sets font for text
 
-# Define images
-TRACK = pygame.image.load(os.path.join("Assets","city map 1.png"))
-TRACK_BORDER = pygame.image.load(os.path.join("Assets", "map_grass.png")) # draw with rectangles potentially
-RED_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","car_red_small_4.png")), 180, 0.5) # scales images to the correct size
-SMALLER_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","car_red_small_4.png")), 180, 0.1)
-YELLOW_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","car_yellow_small_4.png")), 180, 0.5)
-PARCEL = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","parcel.png")), 0, 0.1)
-
-# Define matrix
-# 1 means that the car can use that tile to travel
-# 0 means that the car cannot use that square
-Track_Grid = [[1,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],#
-              [1,0,1,0,0,1,0,1,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1],#
-              [1,1,1,0,0,1,0,1,1,1,1,0,0,1,0,0,0,0,0,1,0,0,1,0,1],#
-              [1,0,1,1,1,1,0,0,0,0,1,0,0,1,1,1,0,0,0,1,0,0,1,0,1],#
-              [1,0,1,0,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1],#
-              [1,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,1,0,0,0,1,0,1],#
-              [1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,0,0,1,0,0,0,1,0,1],#
-              [1,0,0,0,0,1,0,1,0,0,1,1,1,1,0,1,1,1,1,0,1,1,1,0,1],#
-              [1,1,1,1,1,1,1,1,1,1,1,0,0,1,0,1,0,0,1,1,1,0,1,0,1],#
-              [1,0,0,0,1,0,0,1,0,1,0,0,0,1,0,1,0,0,1,0,0,0,1,0,1],#
-              [1,0,0,0,1,0,0,1,0,1,0,0,0,1,0,1,1,1,1,0,0,0,1,0,1],#
-              [1,1,1,1,1,0,0,1,0,1,0,0,0,1,0,0,1,0,1,0,0,0,1,1,1],#
-              [0,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,1,0,0,0,0,0,1],#
-              [0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1],#
-              ] #calculate optimal time
-                # bronze, silver, gold medals if close enough to time
+# calculate optimal time
+# bronze, silver, gold medals if close enough to time
 # Each element of the matrix represents a 48x48 tile on the screen
-
-# Track collisions
-TRACK_BORDER_MASK = pygame.mask.from_surface(TRACK_BORDER) # after re-evluating the solution i decided that a mask would be the best solution for car and track collisions.
-
 
 # img utils
 def blit_rotate_centre(win, img, top_left, angle):
@@ -280,7 +249,7 @@ class Parcel(pygame.sprite.Sprite):
 player_car = PlayerCar(1,3)
 
 # Create Text
-text = font.render(f"Score: {player_car.points}", False, "#ffffff", (0,200,0)) # 
+text = FONT.render(f"Score: {player_car.points}", False, "#ffffff", (0,200,0)) # 
 textRect = text.get_rect()
 # Set the center of the rectangular object.
 textRect.center = (600,650)
@@ -293,12 +262,12 @@ track_mask = pygame.mask.from_surface(TRACK)
 while len(parcels) != 5: # THis could be done inside the parcels class to encapsulate the code.
     row = random.randint(1,13)
     col = random.randint(1,24)
-    if Track_Grid[row][col] ==1:
+    if TRACK_GRID[row][col] ==1:
         parcel = Parcel(row*48,col*48)
         parcel_mask = pygame.mask.from_surface(PARCEL)
         offset = (parcel.x , parcel.y) 
         if track_mask.overlap(parcel_mask, offset):
-            Track_Grid[row][col] = 2
+            TRACK_GRID[row][col] = 2
             parcels.add(parcel)
         else: pass
     else:pass
@@ -310,7 +279,7 @@ for i in range(13):
 '''
 
 # Pathfinder
-pathfinder = Pathfinder(Track_Grid)
+pathfinder = Pathfinder(TRACK_GRID)
 
 # Main Loop
 run = True
@@ -362,8 +331,8 @@ while run:
     player_car.update()
     pathfinder.update()
     if player_car.points == 5:
-        text = font.render(f"Score: {player_car.points}, Player Wins!", False, "#ffffff", (0,200,0))
+        text = FONT.render(f"Score: {player_car.points}, Player Wins!", False, "#ffffff", (0,200,0))
     else:
-        text = font.render(f"Score: {player_car.points}", False, "#ffffff", (0,200,0))
+        text = FONT.render(f"Score: {player_car.points}", False, "#ffffff", (0,200,0))
     SCREEN.blit(text, textRect)
     pygame.display.update()
