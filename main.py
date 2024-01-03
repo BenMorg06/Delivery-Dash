@@ -100,10 +100,11 @@ class PlayerCar(AbsractCar):
 
 # Create AI class
 class Pathfinder:
-    def __init__(self, matrix):
+    def __init__(self, matrix,parcels):
         # setup
         self.matrix = matrix
         self.grid = Grid(matrix=matrix)
+        self.parcels = parcels
         
         # pathfinding
         self.path =[]
@@ -121,7 +122,7 @@ class Pathfinder:
 
         # end
         parcel_list = []
-        for parcel in parcels:
+        for parcel in self.parcels:
             parcel_list.append(parcel)
         print(parcel_list)
         end_x, end_y = int(parcel_list[0].x//48), int(parcel_list[0].y//48)
@@ -244,95 +245,101 @@ class Parcel(pygame.sprite.Sprite):
     def update(self):
         self.rect.center = (self.x,self.y) # updates the centre of the rectangle with new coords
 
-#print(Track_Grid)
-# Instantiating player car
-player_car = PlayerCar(1,3)
+class Main():
+    def __init__(self):
+        #print(Track_Grid)
+        # Instantiating player car
+        self.player_car = PlayerCar(1,3)
 
-# Create Text
-text = FONT.render(f"Score: {player_car.points}", False, "#ffffff", (0,200,0)) # 
-textRect = text.get_rect()
-# Set the center of the rectangular object.
-textRect.center = (600,650)
+        # Create Text
+        self.text = FONT.render(f"Score: {self.player_car.points}", False, "#ffffff", (0,200,0)) # 
+        self.textRect = self.text.get_rect()
+        # Set the center of the rectangular object.
+        self.textRect.center = (600,650)
 
-# creating parcels list
-deliveries = 3
-parcels = pygame.sprite.Group()
-track_mask = pygame.mask.from_surface(TRACK)
+        # creating parcels list
+        self.parcels = pygame.sprite.Group()
+        self.deliveries = 3
 
-while len(parcels) != 5: # THis could be done inside the parcels class to encapsulate the code.
-    row = random.randint(1,13)
-    col = random.randint(1,24)
-    if TRACK_GRID[row][col] ==1:
-        parcel = Parcel(row*48,col*48)
-        parcel_mask = pygame.mask.from_surface(PARCEL)
-        offset = (parcel.x , parcel.y) 
-        if track_mask.overlap(parcel_mask, offset):
-            TRACK_GRID[row][col] = 2
-            parcels.add(parcel)
-        else: pass
-    else:pass
-'''
-for i in range(13):
-    for j in range(24):
-        if Track_Grid[i][j] == 2:
-            print(Track_Grid[i][j])
-'''
+    def create_parcels(self):
+        track_mask = pygame.mask.from_surface(TRACK)
 
-# Pathfinder
-pathfinder = Pathfinder(TRACK_GRID)
+        while len(self.parcels) != 5: # THis could be done inside the parcels class to encapsulate the code.
+            row = random.randint(1,13)
+            col = random.randint(1,24)
+            if TRACK_GRID[row][col] ==1:
+                parcel = Parcel(row*48,col*48)
+                parcel_mask = pygame.mask.from_surface(PARCEL)
+                offset = (parcel.x , parcel.y) 
+                if track_mask.overlap(parcel_mask, offset):
+                    TRACK_GRID[row][col] = 2
+                    self.parcels.add(parcel)
+                else: pass
+            else:pass
+        '''
+        for i in range(13):
+            for j in range(24):
+                if Track_Grid[i][j] == 2:
+                    print(Track_Grid[i][j])
+        '''
 
-# Main Loop
-run = True
-while run:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            quit()
-    keys = pygame.key.get_pressed()
-    moved = False
+    # Main Loop
+    def run(self):
+        self.create_parcels()
+        self.pathfinder = Pathfinder(TRACK_GRID,self.parcels)
+        while self.run:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    quit()
+            keys = pygame.key.get_pressed()
+            moved = False
 
-    if keys[pygame.K_a]:
-        player_car.rotate(left=True)
-    if keys[pygame.K_d]:
-        player_car.rotate(right=True)
-    if keys[pygame.K_w]:
-        moved = True
-        player_car.move_forward()
-    if keys[pygame.K_s]:
-        moved = True
-        player_car.move_backward()
-    if not moved:
-        player_car.reduce_speed()
+            if keys[pygame.K_a]:
+                self.player_car.rotate(left=True)
+            if keys[pygame.K_d]:
+                self.player_car.rotate(right=True)
+            if keys[pygame.K_w]:
+                moved = True
+                self.player_car.move_forward()
+            if keys[pygame.K_s]:
+                moved = True
+                self.player_car.move_backward()
+            if not moved:
+                self.player_car.reduce_speed()
 
-    # collisions
-    if player_car.collide(TRACK_BORDER_MASK) != None: #When the car is not touching the road this if occurs
-        player_car.bounce()
+            # collisions
+            if self.player_car.collide(TRACK_BORDER_MASK) != None: #When the car is not touching the road this if occurs
+                self.player_car.bounce()
 
-    if player_car.x <= 0 or player_car.y <= 0 or player_car.x >= WIDTH or player_car.y >= HEIGHT:
-        player_car.bounce()
-    
-    for parcel in parcels:
-        player_car.deliver_parcel(parcel,parcels)
-        pathfinder.car.deliver_parcel(parcel,parcels)
+            if self.player_car.x <= 0 or self.player_car.y <= 0 or self.player_car.x >= WIDTH or self.player_car.y >= HEIGHT:
+                self.player_car.bounce()
+            
+            for parcel in self.parcels:
+                self.player_car.deliver_parcel(parcel,self.parcels)
+                self.pathfinder.car.deliver_parcel(parcel,self.parcels)
 
 
-    SCREEN.fill((0,200,0))
-    SCREEN.blit(TRACK,(0,0))
-    #SCREEN.blit(PARCEL,(30,90))
-    player_car.draw(SCREEN)
+            SCREEN.fill((0,200,0))
+            SCREEN.blit(TRACK,(0,0))
+            #SCREEN.blit(PARCEL,(30,90))
+            self.player_car.draw(SCREEN)
 
-    for parcel in parcels:
-        parcel.draw(SCREEN)
-        parcel.update()
+            for parcel in self.parcels:
+                parcel.draw(SCREEN)
+                parcel.update()
 
-    if len(parcels)>0 and pathfinder.car.haspath == False:
-        pathfinder.create_path()
-        pathfinder.car.haspath= True
+            if len(self.parcels)>0 and self.pathfinder.car.haspath == False:
+                self.pathfinder.create_path()
+                self.pathfinder.car.haspath= True
 
-    player_car.update()
-    pathfinder.update()
-    if player_car.points == 5:
-        text = FONT.render(f"Score: {player_car.points}, Player Wins!", False, "#ffffff", (0,200,0))
-    else:
-        text = FONT.render(f"Score: {player_car.points}", False, "#ffffff", (0,200,0))
-    SCREEN.blit(text, textRect)
-    pygame.display.update()
+            self.player_car.update()
+            self.pathfinder.update()
+            if self.player_car.points == 5:
+                text = FONT.render(f"Score: {self.player_car.points}, Player Wins!", False, "#ffffff", (0,200,0))
+            else:
+                text = FONT.render(f"Score: {self.player_car.points}", False, "#ffffff", (0,200,0))
+            SCREEN.blit(text, self.textRect)
+            pygame.display.update()
+
+game = Main()
+game.run()
