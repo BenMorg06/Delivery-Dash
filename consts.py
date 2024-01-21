@@ -12,8 +12,13 @@ RED_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","car
 YELLOW_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","car_yellow_small_4.png")), 180, 0.5)
 PARCEL = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","parcel.png")), 0, 0.1)
 
+# Button Constants
+BLUE_BUTTON = pygame.transform.rotozoom(pygame.image.load(os.path.join("Kenney-Ui-Pack","PNG","blue_button02.png")), 0, 1.5)
+BLUE_BUTTON_HOVER = pygame.transform.rotozoom(pygame.image.load(os.path.join("Kenney-Ui-Pack","PNG","blue_button02.png")),0,1.6)
+
 # Text constants
 FONT = pygame.font.Font('freesansbold.ttf', 32) # sets font for text
+TITLE_FONT = pygame.font.Font('freesansbold.ttf', 54)
 
 # Game constants
 # Define matrix

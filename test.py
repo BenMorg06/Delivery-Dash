@@ -1,57 +1,18 @@
-# This will be a file to load programs into and test them.
-#Important notes for Development
-# Cars collisions with the map are extremely buggy and do not work properly, I will aim to fix this over christmas
-# I need a function that can be used to connect the coordinates to the matrix
-
 # Imports
 import pygame, os, math, random
-from pathfinding.core.grid import Grid
-from pathfinding.finder.a_star import AStarFinder
-from pathfinding.core.diagonal_movement import DiagonalMovement
-pygame.init()
+from consts import *
+from collections import deque
+pygame.init() #initiates pygame library
 
 # Setup Pygame Window
-pygame.display.set_caption("Delivery Dash")
-# Define constants
-WIDTH, HEIGHT = 1244, 700
-SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Delivery Dash") # sets name of window
+# Define Screen
+SCREEN = pygame.display.set_mode((WIDTH, HEIGHT)) # sets dimensions of window
 
-# Set pygame font
-font = pygame.font.Font('freesansbold.ttf', 32)
 
-# Define images
-TRACK = pygame.image.load(os.path.join("Assets","city map 1.png"))
-TRACK_BORDER = pygame.image.load(os.path.join("Assets", "map_grass.png")) # draw with rectangles potentially
-RED_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","car_red_small_4.png")), 180, 0.5)
-SMALLER_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","car_red_small_4.png")), 180, 0.1)
-
-PARCEL = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","parcel.png")), 0, 0.1)
-# Define matrix
-# 1 means that the car can use that tile to travel
-# 0 means that the car cannot use that square
-Track_Grid = [[1,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],#
-              [1,0,1,0,0,1,0,1,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1],#
-              [1,1,1,0,0,1,0,1,1,1,1,0,0,1,0,0,0,0,0,1,0,0,1,0,1],#
-              [1,0,1,1,1,1,0,0,0,0,1,0,0,1,1,1,0,0,0,1,0,0,1,0,1],#
-              [1,0,1,0,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1],#
-              [1,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,1,0,0,0,1,0,1],#
-              [1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,0,0,1,0,0,0,1,0,1],#
-              [1,0,0,0,0,1,0,1,0,0,1,1,1,1,0,1,1,1,1,0,1,1,1,0,1],#
-              [1,1,1,1,1,1,1,1,1,1,1,0,0,1,0,1,0,0,1,1,1,0,1,0,1],#
-              [1,0,0,0,1,0,0,1,0,1,0,0,0,1,0,1,0,0,1,0,0,0,1,0,1],#
-              [1,0,0,0,1,0,0,1,0,1,0,0,0,1,0,1,1,1,1,0,0,0,1,0,1],#
-              [1,1,1,1,1,0,0,1,0,1,0,0,0,1,0,0,1,0,1,0,0,0,1,1,1],#
-              [0,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,1,0,0,0,0,0,1],#
-              [0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1],#
-              ] #calculate optimal time
-                # bronze, silver, gold medals if close enough to time
+# calculate optimal time
+# bronze, silver, gold medals if close enough to time
 # Each element of the matrix represents a 48x48 tile on the screen
-
-# Track collisions
-# I will no longer be using a mask for the track collisions because it will be more efficient for time and ease of code.
-# These collisions will be added once the car is created
-TRACK_BORDER_MASK = pygame.mask.from_surface(TRACK_BORDER) # after re-evluating the solution i decided that a mask would be the best solution for car and track collisions.
-
 
 # img utils
 def blit_rotate_centre(win, img, top_left, angle):
@@ -62,6 +23,39 @@ def blit_rotate_centre(win, img, top_left, angle):
     # making it appear like we rotated around the center of the original image
     win.blit(rotated_img, new_rect.topleft)
 
+def bfs(matrix, start, target):
+    if not matrix or not matrix[0] or matrix[start[0]][start[1]] == 0 or matrix[target[0]][target[1]] == 0:
+        # Invalid matrix or starting/ending point blocked
+        return []
+
+    rows, cols = len(matrix), len(matrix[0])
+
+    # Directions for moving up, down, left, and right (no diagonals)
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+    # Initialize the queue with the starting point and path
+    queue = deque([(start[0], start[1], [(start[0], start[1])])])  # (row, col, current path)
+
+    while queue:
+        current_row, current_col, current_path = queue.popleft()
+
+        # Check if reached the destination
+        if current_row == target[0] and current_col == target[1]:
+            return current_path
+
+        # Explore neighbors
+        for dr, dc in directions:
+            new_row, new_col = current_row + dr, current_col + dc
+
+            # Check if the neighbor is within bounds and is an open cell (1)
+            if 0 <= new_row < rows and 0 <= new_col < cols and matrix[new_row][new_col] == 1:
+                # Mark the cell as visited by setting it to 0
+                matrix[new_row][new_col] = 0
+                # Add the neighbor to the queue with an updated path
+                queue.append((new_row, new_col, current_path + [(new_row, new_col)]))
+
+    # If the queue is empty and destination is not reached, there is no path
+    return []
 # Generic Car Class
 class AbsractCar():
     def __init__(self, max_vel, rotation_vel):
@@ -74,12 +68,9 @@ class AbsractCar():
         self.acceleration = 0.1 # every frame the velocity increases by 0.1 pixels
         self.rect = self.img.get_rect(center = (self.x,self.y))
         self.points = 0
-        self.path = 0
-        self.runs = 0
-        self.hasPath = False
-
 
     def rotate(self, left=False, right=False):
+        # rotates the car depending on keys pressed
         if left:
             self.angle+=self.rotation_vel
         elif right:
@@ -91,10 +82,12 @@ class AbsractCar():
         self.move()
 
     def move_backward(self):
-        self.vel = max(self.vel - self.acceleration, -self.max_vel)
+        # move backwards the max velocity is half forward max velocity
+        self.vel = max(self.vel - self.acceleration, -self.max_vel/2)
         self.move()
 
     def move(self):
+        # cmoves the car at the angle of rotation multiplied by the velocity
         radians = math.radians(self.angle)
         vertical = math.cos(radians)*self.vel
         horizontal = math.sin(radians)*self.vel
@@ -102,156 +95,144 @@ class AbsractCar():
         self.x += horizontal
 
     def reduce_speed(self):
+        #picks the max value between 0 and velocity - acceleration as it slows down the car
         self.vel = max(self.vel-self.acceleration/2, 0)
         self.move()
 
     def draw(self, win):
+        # draws the car using the blit rotate function
         blit_rotate_centre(win,self.img, (self.x,self.y), self.angle)
 
-    def collide(self, mask, x=-20, y=-20):
-        car_mask = pygame.mask.from_surface(SMALLER_CAR)
+    def collide(self, mask, x=0, y=0):
+        # creates a mask for the car and uses pygame library for collision detection
+        car_mask = pygame.mask.from_surface(self.img)
         offset = (self.x -x, self.y-y) 
         poi = mask.overlap(car_mask, offset)
-        return poi
+        return poi # returns point of intersection if there is one, if not returns False
 
     def bounce(self):
+        # car bounces off collisions
         self.vel = -self.vel/2
         self.move()
 
-    def deliver_parcel(self,parcel, parcels):
-        if self.rect.colliderect(parcel):
-            parcels.remove(parcel)
-            self.points +=1
+    def deliver_parcel(self,parcel, parcels): 
+        if self.rect.colliderect(parcel): #Checks for collision between car rectangle and parcel rectangle
+            parcels.remove(parcel) # removes collided parcel from sprite group
+            self.points +=1 # increments player points by 1
             
 
-    def update(self):
-        self.rect.center = (self.x,self.y)
-
+# Create player car class
 class PlayerCar(AbsractCar):
     IMG = RED_CAR
     START_POS = 13,24
 
-class Pathfinder:
-	def __init__(self,matrix):
+    def update(self):
+        # sets the rectangle center to new x and y values
+        self.rect.center = (self.x,self.y)
 
-		# setup
-		self.matrix = matrix
-		self.grid = Grid(matrix = matrix)
-		self.select_surf = pygame.transform.rotozoom(pygame.image.load('selection.png').convert_alpha(),0,1.5)
 
-		# pathfinding
-		self.path = []
+class AICar(AbsractCar):
+    IMG = YELLOW_CAR
+    START_POS = 23,24
 
-		# Roomba
-		self.roomba = pygame.sprite.GroupSingle(Roomba(self.empty_path))
+    def __init__(self, max_vel, rotation_vel,parcels):
+        super().__init__(max_vel, rotation_vel) # initiates the parent class - Abstract Car
+        # print('Initialized'); testing
 
-	def empty_path(self):
-		self.path = []
+        # movement
+        self.rect = self.img.get_rect(center = (self.x,self.y)) # creates a rectangle with center self.x and self.y
+        self.pos = self.rect.center
+        self.direction = pygame.math.Vector2(0,0) # sets the initial direction to a vector of (0,0) so it is not moving and has no direction
 
-	def draw_active_cell(self):
-		mouse_pos = pygame.mouse.get_pos()
-		row =  mouse_pos[1] // 48
-		col =  mouse_pos[0] // 48
-		current_cell_value = self.matrix[row][col]
-		if current_cell_value == 1:
-			rect = pygame.Rect((col * 48,row * 48),(48,48))
-			SCREEN.blit(self.select_surf,rect)
+        self.parcels = parcels
+        # path
+        # creates necessary variables for pathfinding 
+        self.path = []
+        self.collision_rects = []
+        self.empty_path = []
+        self.haspath = False
+    
+    def get_closest_parcel(self): # returns the closest parcel to the current position of AI car
+        shortest_dist = 10000000
+        for parcel in self.parcels:
+            dist = abs((self.pos[0] - parcel.x)+(self.pos[1] - parcel.y))
+            if dist < shortest_dist:
+                shortest_dist = dist
+                closest_parcel = parcel
+            else:
+                pass
 
-	def create_path(self):
+        return closest_parcel
 
-		# start
-		start_x, start_y = self.roomba.sprite.get_coord()
-		start = self.grid.node(start_x,start_y)
+    def get_coords(self): # returns the column and row that the AI Car is currently in
+        col = self.rect.centerx // 48
+        row = self.rect.centery //48
+        return col, row
+    
+    def get_start(self):
+        # start 
+        return (int(self.pos[0]//48), int(self.pos[1]//48)) # gets the start row and column of the car
+        
 
-		# end
-		mouse_pos = pygame.mouse.get_pos()
-		end_x,end_y =  mouse_pos[0] // 48, mouse_pos[1] // 48 # End position should be coords of a parcel in the sprite group
-		end = self.grid.node(end_x,end_y) 
+    def get_end(self):
+        # end
+        closest_parcel = self.get_closest_parcel() # get the closest parcel to the car's current position
+        return (int(closest_parcel.x//48), int(closest_parcel.y//48)) # selects the closest parcel to be the end point of the path
+    
+    def set_path(self): # sets the path equal to the path found by the algorithm
+        self.create_collision_rects() 
+        self.get_direction()
 
-		# path
-		finder = AStarFinder()
-		self.path_nodes,_ = finder.find_path(start,end,self.grid)
-		self.grid_nodes = map(lambda gridnode: (gridnode.x, gridnode.y), self.path)
-		self.path = [(gridnode.x, gridnode.y) for gridnode in self.path_nodes]
-		self.roomba.sprite.set_path(self.path)
-
-	def draw_path(self):
-		if self.path:
-			points = []
-			for point in self.path:
-				x = (point[0] * 48) +24
-				y = (point[1] * 48) +24
-				points.append((x,y))
-
-			pygame.draw.lines(SCREEN,'#4a4a4a',False,points,5)
-
-	def update(self):
-		self.draw_active_cell()
-		self.draw_path()
-
-		# roomba updating and drawing
-		self.roomba.update()
-		self.roomba.draw(SCREEN)
-
-class Roomba(pygame.sprite.Sprite):
-	def __init__(self,empty_path):
-
-		# basic
-		super().__init__()
-		self.image = pygame.image.load('roomba.png').convert_alpha()
-		self.rect = self.image.get_rect(center = (20,20))
-
-		# movement 
-		self.pos = self.rect.center
-		self.speed = 3
-		self.direction = pygame.math.Vector2(0,0)
-
-		# path
-		self.path = []
-		self.collision_rects = []
-		self.empty_path = empty_path
-
-	def get_coord(self):
-		col = self.rect.centerx // 48
-		row = self.rect.centery // 48
-		return (col,row)
-
-	def set_path(self,path):
-		self.path = path
-		self.create_collision_rects()
-		self.get_direction()
-
-	def create_collision_rects(self):
-		if self.path:
-			self.collision_rects = []
-			for point in self.path:
-				x = (point[0] * 48) +24
-				y = (point[1] * 48) +24
-				rect = pygame.Rect((x - 2,y - 2),(4,4))
-				self.collision_rects.append(rect)
-
-	def get_direction(self):
-		if self.collision_rects:
-			start = pygame.math.Vector2(self.pos)
-			end = pygame.math.Vector2(self.collision_rects[0].center)
-			self.direction = (end - start).normalize()
-		else:
-			self.direction = pygame.math.Vector2(0,0)
-			self.path = []
-
-	def check_collisions(self):
-		if self.collision_rects:
-			for rect in self.collision_rects:
-				if rect.collidepoint(self.pos):
-					del self.collision_rects[0]
-					self.get_direction()
-		else:
-			self.empty_path()
-
-	def update(self):
-		self.pos += self.direction * self.speed
-		self.check_collisions()
-		self.rect.center = self.pos
+    def create_collision_rects(self): # creates a list of rectangles to check the AI car is moving in the correct location
+        if self.path:
+            self.collision_rects = []
+            for point in self.path:
+                x = (point[0] *48) +24
+                y = (point[1] *48) +24
+                rect = pygame.Rect((x-2,y-2),(4,4))
+                self.collision_rects.append(rect)
+    
+    def get_direction(self): # sets the cars direction to head towards the next collision rectangle
+        if self.collision_rects:
+            start = pygame.math.Vector2(self.pos)
+            end = pygame.math.Vector2(self.collision_rects[0].center)
+            self.direction = (end - start).normalize()
+            
+        else:
+            self.direction = pygame.math.Vector2(0,0)
+            self.path = []
+ 
+    def check_collisions(self): # checks that the car collides with the next collisions rectangle
+        if self.collision_rects:
+            for rect in self.collision_rects:
+                if rect.collidepoint(self.pos):
+                    del self.collision_rects[0]
+                    self.get_direction()
+        else:
+            self.empty_path
+    
+    def calculate_angle(self): # this will ensure the car rotates and looks like the player car when moving
+        self.angle = math.degrees(math.atan2(abs(self.direction.y), self.direction.x) )-90
+        return self.angle
+    def draw(self, win):# draw the ai car on the screen
+        self.calculate_angle()
+        blit_rotate_centre(win,self.img, (self.pos), self.angle)
+    
+    def deliver_parcel(self,parcel, parcels): 
+        if self.rect.colliderect(parcel): #Checks for collision between car rectangle and parcel rectangle
+            parcels.remove(parcel) # removes collided parcel from sprite group
+            self.points +=1 # increments player points by 1
+            self.haspath = False
+            print(parcels)
+            if not parcels:
+                # handle case when all parcels have been delivered
+                ...
+    
+    def update(self):
+        print(f"AI Car Position: {self.pos[0]//48,self.pos[1]//48}, Direction: {self.direction}")
+        self.pos += self.direction * 2
+        self.check_collisions()
+        self.rect.center = self.pos
 
 
 class Parcel(pygame.sprite.Sprite):
@@ -264,96 +245,107 @@ class Parcel(pygame.sprite.Sprite):
         self.rect.center = (self.x,self.y)
 
     def draw(self, screen):
-        screen.blit(self.image,(self.x,self.y))
+        screen.blit(self.image,(self.x,self.y)) # draws the parcel to the screen
 
     def update(self):
-        self.rect.center = (self.x,self.y)
+        self.rect.center = (self.x,self.y) # updates the centre of the rectangle with new coords
 
-#print(Track_Grid)
-# Instantiating player car
-player_car = PlayerCar(1,3)
-text = font.render(f"Score: {player_car.points}", False, "#ffffff", (0,200,0))
-textRect = text.get_rect()
- # set the center of the rectangular object.
-textRect.center = (600,650)
+class Main():
+    def __init__(self):
+        #print(Track_Grid)
+        # setting up the loop
+        self.running = True
 
-# Instantiate the AI Car
-#ai_car = AICar(1,3)
-pathfinder = Pathfinder(Track_Grid)
-# creating parcels list
-deliveries = 3
-parcels = pygame.sprite.Group()
-track_mask = pygame.mask.from_surface(TRACK)
-
-while len(parcels) != 5:
-    row = random.randint(1,13)
-    col = random.randint(1,24)
-    if Track_Grid[row][col] ==1:
-        parcel = Parcel(row*48,col*48)
-        parcel_mask = pygame.mask.from_surface(PARCEL)
-        offset = (parcel.x , parcel.y) 
-        if track_mask.overlap(parcel_mask, offset):
-            Track_Grid[row][col] = 2
-            parcels.add(parcel)
-        else: pass
-    else:pass
-'''
-for i in range(13):
-    for j in range(24):
-        if Track_Grid[i][j] == 2:
-            print(Track_Grid[i][j])
-'''
-
-# Main Loop
-run = True
-while run:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            quit()
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            pathfinder.create_path()
-
-    keys = pygame.key.get_pressed()
-    moved = False
-
-    if keys[pygame.K_a]:
-        player_car.rotate(left=True)
-    if keys[pygame.K_d]:
-        player_car.rotate(right=True)
-    if keys[pygame.K_w]:
-        moved = True
-        player_car.move_forward()
-    if keys[pygame.K_s]:
-        moved = True
-        player_car.move_backward()
-    if not moved:
-        player_car.reduce_speed()
-
-    # collisions
-    if player_car.collide(TRACK_BORDER_MASK) != None: #When the car is not touching the road this if occurs
-        player_car.bounce()
-
-    if player_car.x <= 0 or player_car.y <= 0 or player_car.x >= WIDTH or player_car.y >= HEIGHT:
-        player_car.bounce()
-    
-    for parcel in parcels:
-        player_car.deliver_parcel(parcel,parcels)
+        # Instantiating player car
+        self.player_car = PlayerCar(1,3)
 
 
-    SCREEN.fill((0,200,0))
-    SCREEN.blit(TRACK,(0,0))
-    #SCREEN.blit(PARCEL,(30,90))
-    player_car.draw(SCREEN)
-    for parcel in parcels:
-        parcel.draw(SCREEN)
-        parcel.update()
+        # Create Text
+        self.text = FONT.render(f"Score: {self.player_car.points}", False, "#ffffff", (0,200,0)) # 
+        self.textRect = self.text.get_rect()
+        # Set the center of the rectangular object.
+        self.textRect.center = (600,650)
 
-    player_car.update()
-    if player_car.points == 5:
-        text = font.render(f"Score: {player_car.points}, Player Wins!", False, "#ffffff", (0,200,0))
-    else:
-        text = font.render(f"Score: {player_car.points}", False, "#ffffff", (0,200,0))
-    SCREEN.blit(text, textRect)
+        # creating parcels list
+        self.parcels = pygame.sprite.Group()
+        self.deliveries = 3
 
-    pathfinder.update()
-    pygame.display.update()
+        self.ai_car=AICar(1,3,self.parcels)
+
+    def create_parcels(self):
+        track_mask = pygame.mask.from_surface(TRACK)
+
+        while len(self.parcels) != 5: # THis could be done inside the parcels class to encapsulate the code.
+            row = random.randint(1,13)
+            col = random.randint(1,24)
+            if TRACK_GRID[row][col] ==1:
+                parcel = Parcel(row*48,col*48)
+                parcel_mask = pygame.mask.from_surface(PARCEL)
+                offset = (parcel.x , parcel.y) 
+                if track_mask.overlap(parcel_mask, offset):
+                    TRACK_GRID[row][col] = 2
+                    self.parcels.add(parcel)
+                else: pass
+            else:pass
+
+    # Main Loop
+    def run(self):
+        self.create_parcels()
+        while self.running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    quit()
+            keys = pygame.key.get_pressed()
+            moved = False
+
+            if keys[pygame.K_a]:
+                self.player_car.rotate(left=True)
+            if keys[pygame.K_d]:
+                self.player_car.rotate(right=True)
+            if keys[pygame.K_w]:
+                moved = True
+                self.player_car.move_forward()
+            if keys[pygame.K_s]:
+                moved = True
+                self.player_car.move_backward()
+            if not moved:
+                self.player_car.reduce_speed()
+
+            # collisions
+            if self.player_car.collide(TRACK_BORDER_MASK) != None: #When the car is not touching the road this if occurs
+                self.player_car.bounce()
+
+            if self.player_car.x <= 0 or self.player_car.y <= 0 or self.player_car.x >= WIDTH or self.player_car.y >= HEIGHT:
+                self.player_car.bounce()
+            
+            for parcel in self.parcels:
+                self.player_car.deliver_parcel(parcel,self.parcels)
+
+
+
+            SCREEN.fill((0,200,0))
+            SCREEN.blit(TRACK,(0,0))
+            #SCREEN.blit(PARCEL,(30,90))
+            self.player_car.draw(SCREEN)
+            self.ai_car.draw(SCREEN)
+
+            for parcel in self.parcels:
+                parcel.draw(SCREEN)
+                parcel.update()
+
+            if self.ai_car.path == []:
+                start, end = self.ai_car.get_start(), self.ai_car.get_end()
+                print(bfs(TRACK_GRID,start,end))
+                self.ai_car.set_path()
+
+            self.player_car.update()
+            self.ai_car.update()
+            if self.player_car.points == 5:
+                text = FONT.render(f"Score: {self.player_car.points}, Player Wins!", False, "#ffffff", (0,200,0))
+            else:
+                text = FONT.render(f"Score: {self.player_car.points}", False, "#ffffff", (0,200,0))
+            SCREEN.blit(text, self.textRect)
+            pygame.display.update()
+
+main = Main()
+main.run()

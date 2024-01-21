@@ -102,40 +102,77 @@ class PlayerCar(AbsractCar):
 class Pathfinder:
     def __init__(self, matrix,parcels):
         # setup
-        self.matrix = matrix
-        self.grid = Grid(matrix=matrix)
+        self.matrix = matrix # matrix of available squares the car can move to
         self.parcels = parcels
         
-        # pathfinding
-        self.path =[]
+        self.path = []
 
         # AI Car
         self.car = AICar(3,1, self.empty_path)
     
-    def empty_path(self):
+    def empty_path(self): # clears the path 
         self.path = []
     
-    def create_path(self):
-        # start 
-        start_x, start_y = int(self.car.pos[0]//48), int(self.car.pos[1]//48)
-        start = self.grid.node(start_x, start_y)
-
-        # end
-        parcel_list = []
+    def get_closest_parcel(self): # returns the closest parcel to the current position of AI car
+        shortest_dist = 10000000
         for parcel in self.parcels:
-            parcel_list.append(parcel)
-        print(parcel_list)
-        end_x, end_y = int(parcel_list[0].x//48), int(parcel_list[0].y//48)
-        end = self.grid.node(end_x, end_y)
+            dist = abs((self.car.pos[0] - parcel.x)+(self.car.pos[1] - parcel.y))
+            if dist < shortest_dist:
+                shortest_dist = dist
+                closest_parcel = parcel
+            else:
+                pass
 
-        # path
-        finder = AStarFinder()
-        self.path_nodes,_ = finder.find_path(start, end, self.grid)
-        self.path = [(gridnode.x, gridnode.y) for gridnode in self.path_nodes]
-        self.car.set_path(self.path)
-        print(self.path_nodes)
+        return closest_parcel
+    
+    def get_start(self):
+        # start 
+        return (int(self.car.pos[0]//48), int(self.car.pos[1]//48)) # gets the start row and column of the car
+        
 
-    def draw_path(self):
+    def get_end(self):
+        # end
+        closest_parcel = self.get_closest_parcel() # get the closest parcel to the car's current position
+        return (int(closest_parcel.x//48), int(closest_parcel.y//48)) # selects the closest parcel to be the end point of the path
+    
+    def create_path(self):
+        self.path = self.bfs()
+    def bfs(self):
+        start = self.get_start()
+        end = self.get_end()
+        print(start,end)
+        queue = [[start]]
+        visited = set()
+
+        while queue:
+            path = queue.pop(0)
+            vertex = path[-1]
+
+            if vertex == end:
+                return path
+            elif vertex not in visited:
+                row, col = vertex
+                for i in range(4):
+                    if i == 0:  # Up
+                        newRow = row - 1
+                        newCol = col
+                    elif i == 1:  # Down
+                        newRow = row + 1
+                        newCol = col
+                    elif i == 2:  # Left
+                        newRow = row
+                        newCol = col - 1
+                    elif i == 3:  # Right
+                        newRow = row
+                        newCol = col + 1
+                    if 0 <= newRow < 14 and 0 <= newCol < 25 and TRACK_GRID[newRow][newCol] == 1:
+                        new_vertex = (newRow, newCol)
+                        new_path = list(path)
+                        new_path.append(new_vertex)
+                        queue.append(new_path)
+                visited.add(vertex)
+
+    def draw_path(self): # draws a line that shows the path the AI car should follow
         if self.path:
             points = []
             for point in self.path:
@@ -157,31 +194,32 @@ class AICar(AbsractCar):
     START_POS = 23,24
 
     def __init__(self, max_vel, rotation_vel ,empty_path):
-        super().__init__(max_vel, rotation_vel)
+        super().__init__(max_vel, rotation_vel) # initiates the parent class - Abstract Car
         # print('Initialized'); testing
 
         # movement
-        self.rect = self.img.get_rect(center = (self.x,self.y))
+        self.rect = self.img.get_rect(center = (self.x,self.y)) # creates a rectangle with center self.x and self.y
         self.pos = self.rect.center
-        self.direction = pygame.math.Vector2(0,0)
+        self.direction = pygame.math.Vector2(0,0) # sets the initial direction to a vector of (0,0) so it is not moving and has no direction
 
         # path
+        # creates necessary variables for pathfinding 
         self.path = []
         self.collision_rects = []
         self.empty_path = empty_path
         self.haspath = False
 
-    def get_coords(self):
+    def get_coords(self): # returns the column and row that the AI Car is currently in
         col = self.rect.centerx // 48
         row = self.rect.centery //48
         return col, row
     
-    def set_path(self, path):
+    def set_path(self, path): # sets the path equal to the path found by the algorithm
         self.path = path
-        self.create_collision_rects()
+        self.create_collision_rects() 
         self.get_direction()
 
-    def create_collision_rects(self):
+    def create_collision_rects(self): # creates a list of rectangles to check the AI car is moving in the correct location
         if self.path:
             self.collision_rects = []
             for point in self.path:
@@ -190,7 +228,7 @@ class AICar(AbsractCar):
                 rect = pygame.Rect((x-2,y-2),(4,4))
                 self.collision_rects.append(rect)
     
-    def get_direction(self):
+    def get_direction(self): # sets the cars direction to head towards the next collision rectangle
         if self.collision_rects:
             start = pygame.math.Vector2(self.pos)
             end = pygame.math.Vector2(self.collision_rects[0].center)
@@ -199,8 +237,8 @@ class AICar(AbsractCar):
         else:
             self.direction = pygame.math.Vector2(0,0)
             self.path = []
-
-    def check_collisions(self):
+ 
+    def check_collisions(self): # checks that the car collides with the next collisions rectangle
         if self.collision_rects:
             for rect in self.collision_rects:
                 if rect.collidepoint(self.pos):
@@ -209,12 +247,12 @@ class AICar(AbsractCar):
         else:
             self.empty_path
     
-    def get_angle(self):
-        pass
-
-    def draw(self, win):
-        self.get_angle()
-        blit_rotate_centre(win,self.img, (self.rect.center), self.angle)
+    def calculate_angle(self): # this will ensure the car rotates and looks like the player car when moving
+        self.angle = math.degrees(math.atan2(abs(self.direction.y), self.direction.x) )-90
+        return self.angle
+    def draw(self, win):# draw the ai car on the screen
+        self.calculate_angle()
+        blit_rotate_centre(win,self.img, (self.pos), self.angle)
     
     def deliver_parcel(self,parcel, parcels): 
         if self.rect.colliderect(parcel): #Checks for collision between car rectangle and parcel rectangle
@@ -222,12 +260,14 @@ class AICar(AbsractCar):
             self.points +=1 # increments player points by 1
             self.haspath = False
             print(parcels)
+            if not parcels:
+                # handle case when all parcels have been delivered
+                ...
     
     def update(self):
         self.pos += self.direction * 2
         self.check_collisions()
         self.rect.center = self.pos
-    
 
 
 class Parcel(pygame.sprite.Sprite):
@@ -248,6 +288,9 @@ class Parcel(pygame.sprite.Sprite):
 class Main():
     def __init__(self):
         #print(Track_Grid)
+        # setting up the loop
+        self.running = True
+
         # Instantiating player car
         self.player_car = PlayerCar(1,3)
 
@@ -287,7 +330,7 @@ class Main():
     def run(self):
         self.create_parcels()
         self.pathfinder = Pathfinder(TRACK_GRID,self.parcels)
-        while self.run:
+        while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     quit()
@@ -341,5 +384,5 @@ class Main():
             SCREEN.blit(text, self.textRect)
             pygame.display.update()
 
-game = Main()
-game.run()
+main = Main()
+main.run()
