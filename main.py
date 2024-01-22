@@ -1,8 +1,7 @@
 # Imports
 import pygame, os, math, random
 from consts import *
-from pathfinding.core.grid import Grid # imports libraries needed for AI pathfinding
-from pathfinding.finder.a_star import AStarFinder
+from collections import deque
 pygame.init() #initiates pygame library
 
 # Setup Pygame Window
@@ -133,44 +132,47 @@ class Pathfinder:
     def get_end(self):
         # end
         closest_parcel = self.get_closest_parcel() # get the closest parcel to the car's current position
-        return (int(closest_parcel.x//48), int(closest_parcel.y//48)) # selects the closest parcel to be the end point of the path
+        return (int(closest_parcel.y//48), int(closest_parcel.x//48)) # selects the closest parcel to be the end point of the path
     
     def create_path(self):
-        self.path = self.bfs()
-    def bfs(self):
         start = self.get_start()
         end = self.get_end()
-        print(start,end)
-        queue = [[start]]
-        visited = set()
+        self.path = self.shortest_path_binary_matrix(TRACK_GRID, start, end)
+        print(self.path)
+
+    def shortest_path_binary_matrix(self, matrix, start, target):
+        if not matrix or not matrix[0] or matrix[start[1]][start[0]] == 0 or matrix[target[1]][target[0]] == 0:
+            # Invalid matrix or starting/ending point blocked
+            return []
+
+        rows, cols = len(matrix), len(matrix[0])
+
+        # Directions for moving up, down, left, and right (no diagonals)
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+        # Initialize the queue with the starting point and path
+        queue = deque([(start[1], start[0], [(start[1], start[0])])])  # (row, col, current path)
 
         while queue:
-            path = queue.pop(0)
-            vertex = path[-1]
+            current_row, current_col, current_path = queue.popleft()
 
-            if vertex == end:
-                return path
-            elif vertex not in visited:
-                row, col = vertex
-                for i in range(4):
-                    if i == 0:  # Up
-                        newRow = row - 1
-                        newCol = col
-                    elif i == 1:  # Down
-                        newRow = row + 1
-                        newCol = col
-                    elif i == 2:  # Left
-                        newRow = row
-                        newCol = col - 1
-                    elif i == 3:  # Right
-                        newRow = row
-                        newCol = col + 1
-                    if 0 <= newRow < 14 and 0 <= newCol < 25 and TRACK_GRID[newRow][newCol] == 1:
-                        new_vertex = (newRow, newCol)
-                        new_path = list(path)
-                        new_path.append(new_vertex)
-                        queue.append(new_path)
-                visited.add(vertex)
+            # Check if reached the destination
+            if current_row == target[1] and current_col == target[0]:
+                return current_path
+
+            # Explore neighbors
+            for dr, dc in directions:
+                new_row, new_col = current_row + dr, current_col + dc
+
+                # Check if the neighbor is within bounds and is an open cell (1)
+                if 0 <= new_row < rows and 0 <= new_col < cols and matrix[new_row][new_col] == 1:
+                    # Mark the cell as visited by setting it to 0
+                    matrix[new_row][new_col] = 0
+                    # Add the neighbor to the queue with an updated path
+                    queue.append((new_row, new_col, current_path + [(new_row, new_col)]))
+
+        # If the queue is empty and destination is not reached, there is no path
+        return []
 
     def draw_path(self): # draws a line that shows the path the AI car should follow
         if self.path:

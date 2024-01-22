@@ -35,17 +35,8 @@ def shortest_path_binary_matrix(matrix, start, target):
     # If the queue is empty and destination is not reached, there is no path
     return []
 
-# Example usage:
-binary_matrix = [
-    [1, 0, 1, 1, 1],
-    [1, 0, 1, 0, 1],
-    [1, 1, 1, 0, 1],
-    [0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1]
-]
-
 start_square = (0, 0)
-target_square = (6, 4)
+target_square = (3, 3)
 
 shortest_path = shortest_path_binary_matrix(TRACK_GRID, start_square, target_square)
 if shortest_path:
