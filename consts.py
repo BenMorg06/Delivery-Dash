@@ -5,6 +5,10 @@ pygame.init()
 # Screen constants
 HEIGHT, WIDTH = 700, 1244
 
+# Pygame Constants
+CLOCK = pygame.time.Clock()
+FPS = 60
+
 # Image constants
 TRACK = pygame.image.load(os.path.join("Assets","city map 1.png"))
 TRACK_BORDER = pygame.image.load(os.path.join("Assets", "map_grass.png")) # draw with rectangles potentially

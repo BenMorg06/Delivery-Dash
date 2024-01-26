@@ -1,5 +1,5 @@
 # Imports
-import pygame, os, math, random
+import pygame, os, math, random, copy
 from consts import *
 from collections import deque
 pygame.init() #initiates pygame library
@@ -23,28 +23,34 @@ def blit_rotate_centre(win, img, top_left, angle):
     # making it appear like we rotated around the center of the original image
     win.blit(rotated_img, new_rect.topleft)
 
-# find path
-from collections import deque
+def shortest_path_binary_matrix(matrix1, start, target):
+    # Make a copy of TRACK_GRID
+    matrix= copy.deepcopy(matrix1) # ensures that the original constant is not edited
 
-def shortest_path_binary_matrix(matrix, start, target):
     if not matrix or not matrix[0] or matrix[start[1]][start[0]] == 0 or matrix[target[1]][target[0]] == 0:
         # Invalid matrix or starting/ending point blocked
         return []
 
-    rows, cols = len(matrix), len(matrix[0])
+    rows, cols = len(matrix), len(matrix[0]) # gets the number of rows and columns
 
     # Directions for moving up, down, left, and right (no diagonals)
     directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
     # Initialize the queue with the starting point and path
-    queue = deque([(start[1], start[0], [(start[1], start[0])])])  # (row, col, current path)
+    queue = deque([(start[0], start[1], [(start[0], start[1])])])  # (col, row, current path)
+    #queue = ([(0,0 [(0,0)])])
+    # the queue is able to store multiple current points and paths
+    # meaning it can test all possibilities during one loop
 
     while queue:
-        current_row, current_col, current_path = queue.popleft()
+        current_col, current_row, current_path = queue.popleft()
+        # adds to the queue the current point the algorithm is at
+        # and the path to that point
 
         # Check if reached the destination
+        # if the current point is the target point
         if current_row == target[1] and current_col == target[0]:
-            return current_path
+            return current_path # return the path currently saved in queue
 
         # Explore neighbors
         for dr, dc in directions:
@@ -55,11 +61,11 @@ def shortest_path_binary_matrix(matrix, start, target):
                 # Mark the cell as visited by setting it to 0
                 matrix[new_row][new_col] = 0
                 # Add the neighbor to the queue with an updated path
-                queue.append((new_row, new_col, current_path + [(new_row, new_col)]))
+                queue.append((new_col, new_row, current_path + [(new_col, new_row)]))
+                print(queue)
 
     # If the queue is empty and destination is not reached, there is no path
     return []
-
 
 class AbsractCar():
     def __init__(self, max_vel, rotation_vel):
@@ -174,13 +180,13 @@ class AICar(AbsractCar):
         return col, row
     
     def get_start(self):
-        # start 
-        return (int(self.pos[0]//48), int(self.pos[1]//48)) # gets the start row and column of the car
+        # start
+        return (int(self.pos[0] // 48), int(self.pos[1] // 48))  # gets the start column and row of the car
 
     def get_end(self):
         # end
-        closest_parcel = self.get_closest_parcel() # get the closest parcel to the car's current position
-        point = [int(closest_parcel.pos[0]//48), int(closest_parcel.pos[1]//48)] # selects the closest parcel to be the end point of the path
+        closest_parcel = self.get_closest_parcel()  # get the closest parcel to the car's current position
+        point = (int(closest_parcel.pos[0] // 48), int(closest_parcel.pos[1] // 48))  # selects the closest parcel to be the end point of the path
         return point
     
     def set_path(self): # sets the path equal to the path found by the algorithm
@@ -191,8 +197,8 @@ class AICar(AbsractCar):
         if self.path:
             self.collision_rects = []
             for point in self.path:
-                x = (point[1] *48) +24
-                y = (point[0] *48) +24
+                x = (point[0] *48) +24
+                y = (point[1] *48) +24
                 rect = pygame.Rect((x-2,y-2),(4,4))
                 self.collision_rects.append(rect)
     
@@ -227,12 +233,13 @@ class AICar(AbsractCar):
             parcels.remove(parcel) # removes collided parcel from sprite group
             self.points +=1 # increments player points by 1
             self.haspath = False
-            print(parcels)
+            self.path = []
             if not parcels:
                 # handle case when all parcels have been delivered
                 ...
+            
     def update(self):
-        print(f"AI Car Position: {self.pos[0]//48,self.pos[1]//48}, Direction: {self.direction}")
+        #print(f"AI Car Position: {self.pos[0]//48,self.pos[1]//48}, Direction: {self.direction}")
         self.pos += self.direction * 2
         self.check_collisions()
         self.rect.center = self.pos
@@ -252,8 +259,8 @@ class Parcel(pygame.sprite.Sprite):
         screen.blit(self.image,(self.x,self.y)) # draws the parcel to the screen
 
     def update(self):
-        self.rect.center = (self.x,self.y)
-        self.pos = self.rect.center # updates the centre of the rectangle with new coords
+        self.rect.center = (self.x, self.y)
+        self.pos = self.rect.center  # updates the centre of the rectangle with new coords
 
 class Main():
     def __init__(self):
@@ -281,17 +288,20 @@ class Main():
         track_mask = pygame.mask.from_surface(TRACK)
 
         while len(self.parcels) != 5: # THis could be done inside the parcels class to encapsulate the code.
+            visited = []
             row = random.randint(1,13)
             col = random.randint(1,24)
-            if TRACK_GRID[row][col] ==1:
+            if TRACK_GRID[row][col] ==1 and (row,col) not in visited:
                 parcel = Parcel(row*48,col*48)
                 parcel_mask = pygame.mask.from_surface(PARCEL)
                 offset = (parcel.x , parcel.y) 
                 if track_mask.overlap(parcel_mask, offset):
-                    TRACK_GRID[row][col] = 2
+                    visited.append((row,col))
                     self.parcels.add(parcel)
                 else: pass
             else:pass
+            print(TRACK_GRID)
+        
 
     # Main Loop
 
@@ -333,6 +343,7 @@ class Main():
 
             for parcel in self.parcels:
                 self.player_car.deliver_parcel(parcel, self.parcels)
+                self.ai_car.deliver_parcel(parcel, self.parcels)
 
             SCREEN.fill((0, 200, 0))
             SCREEN.blit(TRACK, (0, 0))
@@ -348,11 +359,13 @@ class Main():
                 # AI car doesn't have a path, calculate the new path
                 start = self.ai_car.get_start()
                 target = self.ai_car.get_end()
-                shortest_path = shortest_path_binary_matrix(TRACK_GRID, start, target)
+                print(start, target)
+                shortest_path = shortest_path_binary_matrix(list(TRACK_GRID),start, target)
                 self.ai_car.path = shortest_path
                 print(shortest_path)
                 self.ai_car.set_path()
                 self.ai_car.haspath = True
+                #print(TRACK_GRID)
 
             self.player_car.update()
             self.ai_car.update()
@@ -376,5 +389,6 @@ class Main():
             pygame.display.update()
 
 # Instantiate and run the main loop
+print(TRACK_GRID)
 main = Main()
 main.run()
