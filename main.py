@@ -490,5 +490,5 @@ class Main():
             pygame.display.flip()   
 
 ## RUN GAME ##
-main = Main()
-main.run()
+#main = Main()
+#main.run()
