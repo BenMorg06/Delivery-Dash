@@ -26,6 +26,19 @@ def blit_rotate_centre(win, img, top_left, angle):
     # making it appear like we rotated around the center of the original image
     win.blit(rotated_img, new_rect.topleft)
 
+
+##################################
+######### MATHS UTILITY ##########
+##################################
+def round(number):
+    number = abs(number)
+    decimal_part = number - int(number)
+    #print(decimal_part)
+    if decimal_part >= 0.5 or decimal_part <= -0.5:
+        return math.ceil(number)
+    else:
+        return math.floor(number)
+
 ##################################
 ########### CAR CLASS ############
 ##################################
@@ -303,7 +316,9 @@ class AICar(AbsractCar):
     # CALCULATE ANGLE #
     # this will ensure the car rotates and looks like the player car when moving #
     def calculate_angle(self): 
-        self.angle = math.degrees(math.atan2(abs(self.direction.y), self.direction.x) )-90
+        # print(self.direction[0],self.direction[1])
+        # print(round(self.direction[0]),round(self.direction[1]))
+        self.angle = math.degrees   (math.atan2(self.direction[0],self.direction[1]))
         return self.angle
     
     # DRAW #
@@ -455,10 +470,10 @@ class Main():
                 # AI car doesn't have a path, calculate the new path
                 start = self.pathfinder.get_start()
                 target = self.pathfinder.get_end(self.parcels)
-                print(start, target)
+                #print(start, target)
                 shortest_path = self.pathfinder.shortest_path_binary_matrix(list(TRACK_GRID),start, target)
                 self.pathfinder.path = shortest_path
-                print(shortest_path)
+                #print(shortest_path)
                 self.pathfinder.car.set_path(shortest_path)
                 self.pathfinder.car.haspath = True
                 #print(TRACK_GRID)

@@ -1,7 +1,8 @@
 # Imports
-import pygame, os, math, random, copy
+import pygame, os, math, random
 from consts import *
-from collections import deque
+from pathfinding.core.grid import Grid # imports libraries needed for AI pathfinding
+from pathfinding.finder.a_star import AStarFinder
 pygame.init() #initiates pygame library
 
 # Setup Pygame Window
@@ -23,50 +24,7 @@ def blit_rotate_centre(win, img, top_left, angle):
     # making it appear like we rotated around the center of the original image
     win.blit(rotated_img, new_rect.topleft)
 
-def shortest_path_binary_matrix(matrix1, start, target):
-    # Make a copy of TRACK_GRID
-    matrix= copy.deepcopy(matrix1) # ensures that the original constant is not edited
-
-    if not matrix or not matrix[0] or matrix[start[1]][start[0]] == 0 or matrix[target[1]][target[0]] == 0:
-        # Invalid matrix or starting/ending point blocked
-        return []
-
-    rows, cols = len(matrix), len(matrix[0]) # gets the number of rows and columns
-
-    # Directions for moving up, down, left, and right (no diagonals)
-    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-
-    # Initialize the queue with the starting point and path
-    queue = deque([(start[0], start[1], [(start[0], start[1])])])  # (col, row, current path)
-    #queue = ([(0,0 [(0,0)])])
-    # the queue is able to store multiple current points and paths
-    # meaning it can test all possibilities during one loop
-
-    while queue:
-        current_col, current_row, current_path = queue.popleft()
-        # adds to the queue the current point the algorithm is at
-        # and the path to that point
-
-        # Check if reached the destination
-        # if the current point is the target point
-        if current_row == target[1] and current_col == target[0]:
-            return current_path # return the path currently saved in queue
-
-        # Explore neighbors
-        for dr, dc in directions:
-            new_row, new_col = current_row + dr, current_col + dc
-
-            # Check if the neighbor is within bounds and is an open cell (1)
-            if 0 <= new_row < rows and 0 <= new_col < cols and matrix[new_row][new_col] == 1:
-                # Mark the cell as visited by setting it to 0
-                matrix[new_row][new_col] = 0
-                # Add the neighbor to the queue with an updated path
-                queue.append((new_col, new_row, current_path + [(new_col, new_row)]))
-                print(queue)
-
-    # If the queue is empty and destination is not reached, there is no path
-    return []
-
+# Generic Car Class
 class AbsractCar():
     def __init__(self, max_vel, rotation_vel):
         self.img = self.IMG
@@ -140,60 +98,90 @@ class PlayerCar(AbsractCar):
         # sets the rectangle center to new x and y values
         self.rect.center = (self.x,self.y)
 
+# Create AI class
+class Pathfinder:
+    def __init__(self, matrix,parcels):
+        # setup
+        self.matrix = matrix
+        self.grid = Grid(matrix=matrix)
+        self.parcels = parcels
+        
+        # pathfinding
+        self.path =[]
+
+        # AI Car
+        self.car = AICar(3,1, self.empty_path)
+    
+    def empty_path(self):
+        self.path = []
+    
+    def create_path(self):
+        # start 
+        start_x, start_y = int(self.car.pos[0]//48), int(self.car.pos[1]//48)
+        start = self.grid.node(start_x, start_y)
+
+        # end
+        parcel_list = []
+        for parcel in self.parcels:
+            parcel_list.append(parcel)
+        print(parcel_list)
+        end_x, end_y = int(parcel_list[0].x//48), int(parcel_list[0].y//48)
+        end = self.grid.node(end_x, end_y)
+
+        # path
+        finder = AStarFinder()
+        self.path_nodes,_ = finder.find_path(start, end, self.grid)
+        self.path = [(gridnode.x, gridnode.y) for gridnode in self.path_nodes]
+        self.car.set_path(self.path)
+        print(self.path_nodes)
+
+    def draw_path(self):
+        if self.path:
+            points = []
+            for point in self.path:
+                x = (point[0]*48)+24
+                y = (point[1]*48)+24
+                points.append((x,y))
+
+            pygame.draw.lines(SCREEN, '#4a4a4a', False, points, 5)
+    
+    def update(self):
+        self.draw_path()
+
+        # car
+        self.car.update()
+        self.car.draw(SCREEN)
 
 class AICar(AbsractCar):
     IMG = YELLOW_CAR
     START_POS = 23,24
 
-    def __init__(self, max_vel, rotation_vel,parcels):
-        super().__init__(max_vel, rotation_vel) # initiates the parent class - Abstract Car
+    def __init__(self, max_vel, rotation_vel ,empty_path):
+        super().__init__(max_vel, rotation_vel)
         # print('Initialized'); testing
 
         # movement
-        self.rect = self.img.get_rect(center = (self.x,self.y)) # creates a rectangle with center self.x and self.y
+        self.rect = self.img.get_rect(center = (self.x,self.y))
         self.pos = self.rect.center
-        self.direction = pygame.math.Vector2(0,0) # sets the initial direction to a vector of (0,0) so it is not moving and has no direction
+        self.direction = pygame.math.Vector2(0,0)
 
-        self.parcels = parcels
         # path
-        # creates necessary variables for pathfinding 
         self.path = []
         self.collision_rects = []
-        self.empty_path = []
+        self.empty_path = empty_path
         self.haspath = False
-    
-    def get_closest_parcel(self): # returns the closest parcel to the current position of AI car
-        shortest_dist = 10000000
-        for parcel in self.parcels:
-            dist = abs((self.pos[0] - parcel.x)+(self.pos[1] - parcel.y))
-            if dist < shortest_dist:
-                shortest_dist = dist
-                closest_parcel = parcel
-            else:
-                pass
 
-        return closest_parcel
-
-    def get_coords(self): # returns the column and row that the AI Car is currently in
+    def get_coords(self):
         col = self.rect.centerx // 48
         row = self.rect.centery //48
         return col, row
     
-    def get_start(self):
-        # start
-        return (int(self.pos[0] // 48), int(self.pos[1] // 48))  # gets the start column and row of the car
-
-    def get_end(self):
-        # end
-        closest_parcel = self.get_closest_parcel()  # get the closest parcel to the car's current position
-        point = (int(closest_parcel.pos[0] // 48), int(closest_parcel.pos[1] // 48))  # selects the closest parcel to be the end point of the path
-        return point
-    
-    def set_path(self): # sets the path equal to the path found by the algorithm
-        self.create_collision_rects() 
+    def set_path(self, path):
+        self.path = path
+        self.create_collision_rects()
         self.get_direction()
 
-    def create_collision_rects(self): # creates a list of rectangles to check the AI car is moving in the correct location
+    def create_collision_rects(self):
         if self.path:
             self.collision_rects = []
             for point in self.path:
@@ -202,7 +190,7 @@ class AICar(AbsractCar):
                 rect = pygame.Rect((x-2,y-2),(4,4))
                 self.collision_rects.append(rect)
     
-    def get_direction(self): # sets the cars direction to head towards the next collision rectangle
+    def get_direction(self):
         if self.collision_rects:
             start = pygame.math.Vector2(self.pos)
             end = pygame.math.Vector2(self.collision_rects[0].center)
@@ -211,8 +199,8 @@ class AICar(AbsractCar):
         else:
             self.direction = pygame.math.Vector2(0,0)
             self.path = []
- 
-    def check_collisions(self): # checks that the car collides with the next collisions rectangle
+
+    def check_collisions(self):
         if self.collision_rects:
             for rect in self.collision_rects:
                 if rect.collidepoint(self.pos):
@@ -221,28 +209,25 @@ class AICar(AbsractCar):
         else:
             self.empty_path
     
-    def calculate_angle(self): # this will ensure the car rotates and looks like the player car when moving
-        self.angle = math.degrees(math.atan2(abs(self.direction.y), self.direction.x))
-        return self.angle
-    def draw(self, win):# draw the ai car on the screen
-        self.calculate_angle()
-        blit_rotate_centre(win,self.img, (self.pos), self.angle)
+    def get_angle(self):
+        pass
+
+    def draw(self, win):
+        self.get_angle()
+        blit_rotate_centre(win,self.img, (self.rect.center), self.angle)
     
     def deliver_parcel(self,parcel, parcels): 
         if self.rect.colliderect(parcel): #Checks for collision between car rectangle and parcel rectangle
             parcels.remove(parcel) # removes collided parcel from sprite group
             self.points +=1 # increments player points by 1
             self.haspath = False
-            self.path = []
-            if not parcels:
-                # handle case when all parcels have been delivered
-                ...
-            
+            print(parcels)
+    
     def update(self):
-        #print(f"AI Car Position: {self.pos[0]//48,self.pos[1]//48}, Direction: {self.direction}")
         self.pos += self.direction * 2
         self.check_collisions()
         self.rect.center = self.pos
+    
 
 
 class Parcel(pygame.sprite.Sprite):
@@ -253,24 +238,18 @@ class Parcel(pygame.sprite.Sprite):
         self.y = y
         self.rect = self.image.get_rect()
         self.rect.center = (self.x,self.y)
-        self.pos = self.rect.center
 
     def draw(self, screen):
         screen.blit(self.image,(self.x,self.y)) # draws the parcel to the screen
 
     def update(self):
-        self.rect.center = (self.x, self.y)
-        self.pos = self.rect.center  # updates the centre of the rectangle with new coords
+        self.rect.center = (self.x,self.y) # updates the centre of the rectangle with new coords
 
 class Main():
     def __init__(self):
         #print(Track_Grid)
-        # setting up the loop
-        self.running = True
-
         # Instantiating player car
         self.player_car = PlayerCar(1,3)
-
 
         # Create Text
         self.text = FONT.render(f"Score: {self.player_car.points}", False, "#ffffff", (0,200,0)) # 
@@ -282,37 +261,36 @@ class Main():
         self.parcels = pygame.sprite.Group()
         self.deliveries = 3
 
-        self.ai_car=AICar(1,3,self.parcels)
-
     def create_parcels(self):
         track_mask = pygame.mask.from_surface(TRACK)
 
         while len(self.parcels) != 5: # THis could be done inside the parcels class to encapsulate the code.
-            visited = []
             row = random.randint(1,13)
             col = random.randint(1,24)
-            if TRACK_GRID[row][col] ==1 and (row,col) not in visited:
+            if TRACK_GRID[row][col] ==1:
                 parcel = Parcel(row*48,col*48)
                 parcel_mask = pygame.mask.from_surface(PARCEL)
                 offset = (parcel.x , parcel.y) 
                 if track_mask.overlap(parcel_mask, offset):
-                    visited.append((row,col))
+                    TRACK_GRID[row][col] = 2
                     self.parcels.add(parcel)
                 else: pass
             else:pass
-            print(TRACK_GRID)
-        
+        '''
+        for i in range(13):
+            for j in range(24):
+                if Track_Grid[i][j] == 2:
+                    print(Track_Grid[i][j])
+        '''
 
     # Main Loop
-
     def run(self):
         self.create_parcels()
-
-        while self.running:
+        self.pathfinder = Pathfinder(TRACK_GRID,self.parcels)
+        while self.run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     quit()
-
             keys = pygame.key.get_pressed()
             moved = False
 
@@ -330,65 +308,38 @@ class Main():
                 self.player_car.reduce_speed()
 
             # collisions
-            if self.player_car.collide(TRACK_BORDER_MASK) is not None:
+            if self.player_car.collide(TRACK_BORDER_MASK) != None: #When the car is not touching the road this if occurs
                 self.player_car.bounce()
 
-            if (
-                self.player_car.x <= 0
-                or self.player_car.y <= 0
-                or self.player_car.x >= WIDTH
-                or self.player_car.y >= HEIGHT
-            ):
+            if self.player_car.x <= 0 or self.player_car.y <= 0 or self.player_car.x >= WIDTH or self.player_car.y >= HEIGHT:
                 self.player_car.bounce()
-
+            
             for parcel in self.parcels:
-                self.player_car.deliver_parcel(parcel, self.parcels)
-                self.ai_car.deliver_parcel(parcel, self.parcels)
+                self.player_car.deliver_parcel(parcel,self.parcels)
+                self.pathfinder.car.deliver_parcel(parcel,self.parcels)
 
-            SCREEN.fill((0, 200, 0))
-            SCREEN.blit(TRACK, (0, 0))
 
+            SCREEN.fill((0,200,0))
+            SCREEN.blit(TRACK,(0,0))
+            #SCREEN.blit(PARCEL,(30,90))
             self.player_car.draw(SCREEN)
-            self.ai_car.draw(SCREEN)
 
             for parcel in self.parcels:
                 parcel.draw(SCREEN)
                 parcel.update()
 
-            if not self.ai_car.haspath:
-                # AI car doesn't have a path, calculate the new path
-                start = self.ai_car.get_start()
-                target = self.ai_car.get_end()
-                print(start, target)
-                shortest_path = shortest_path_binary_matrix(list(TRACK_GRID),start, target)
-                self.ai_car.path = shortest_path
-                print(shortest_path)
-                self.ai_car.set_path()
-                self.ai_car.haspath = True
-                #print(TRACK_GRID)
+            if len(self.parcels)>0 and self.pathfinder.car.haspath == False:
+                self.pathfinder.create_path()
+                self.pathfinder.car.haspath= True
 
             self.player_car.update()
-            self.ai_car.update()
-
+            self.pathfinder.update()
             if self.player_car.points == 5:
-                text = FONT.render(
-                    f"Score: {self.player_car.points}, Player Wins!",
-                    False,
-                    "#ffffff",
-                    (0, 200, 0),
-                )
+                text = FONT.render(f"Score: {self.player_car.points}, Player Wins!", False, "#ffffff", (0,200,0))
             else:
-                text = FONT.render(
-                    f"Score: {self.player_car.points}",
-                    False,
-                    "#ffffff",
-                    (0, 200, 0),
-                )
-
+                text = FONT.render(f"Score: {self.player_car.points}", False, "#ffffff", (0,200,0))
             SCREEN.blit(text, self.textRect)
             pygame.display.update()
 
-# Instantiate and run the main loop
-print(TRACK_GRID)
-main = Main()
-main.run()
+game = Main()
+game.run()
