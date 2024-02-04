@@ -4,6 +4,7 @@ from utils import Button, Quit
 from login import LoginMenu
 
 class Menu():
+
     def __init__(self):
         self.screen = pygame.display.set_mode((WIDTH,HEIGHT))
         self.running = True
@@ -23,7 +24,7 @@ class Menu():
                 if event.type == pygame.QUIT:
                     quit()
 
-            self.screen.fill((0,200,0)) 
+            self.screen.fill((34, 40, 49)) 
             self.start_button.draw(self.screen)
             self.quit_button.draw(self.screen)
             self.highscore_button.draw(self.screen)
