@@ -1,10 +1,10 @@
-import pygame
+import pygame, hashlib
 from consts import *
 
 
 # button class
 class Button():
-    def __init__(self, text, action, width, height,pos, elevation):
+    def __init__(self, text, action, width, height,pos, elevation, font_size):
         # core attributes
         self.pressed = False
         self.elevation = elevation
@@ -21,7 +21,8 @@ class Button():
 
         # text
         self.text = text
-        self.text_surf = FONT.render(text,True,'#FFFFFF')
+        font = pygame.font.Font('freesansbold.ttf', font_size)
+        self.text_surf = font.render(text,True,'#FFFFFF')
         self.text_rect = self.text_surf.get_rect(center = self.top_rect.center)
 
         # action
@@ -39,8 +40,10 @@ class Button():
             else:
                 self.dynamic_elevation = self.elevation
                 if self.pressed == True:
-                    self.action.run()
                     self.pressed = False
+                    self.action.run()
+                    
+                    
         else:
             self.dynamic_elevation = self.elevation
             self.top_color = '#475F77'
@@ -68,7 +71,7 @@ class Quit():
 
 # Text Box Class
 class TextBox():
-    def __init__(self, text, width, height, pos, elevation):
+    def __init__(self, text, width, height, pos, elevation, font_size):
         # core attributes
         self.pressed = False
         self.elevation = elevation
@@ -86,6 +89,7 @@ class TextBox():
         # text
         self.original_text = text
         self.text = text
+        font = pygame.font.Font('freesansbold.ttf', font_size)
         self.text_surf = FONT.render(self.text,True,'#FFFFFF')
         self.text_rect = self.text_surf.get_rect(center = self.top_rect.center)
 
@@ -103,6 +107,7 @@ class TextBox():
                 self.dynamic_elevation = 0
                 self.pressed = True
                 self.text = ''
+                self.value = ''
             else:
                 self.dynamic_elevation = self.elevation
                 if self.pressed == True:
@@ -132,8 +137,63 @@ class TextBox():
         screen.blit(self.text_surf, self.text_rect)
         self.on_click()
 
-def validate(csv, user, password):
-    # loop through csv and check if user is present in file
-    # if user present then check if password is correct for user
-    # if not create new user with such password
-    # passwords should be hashed and comparison with hashed passwords
+class Validation():
+    def __init__(self, csv, usr_input, password):
+        self.input = usr_input
+        self.csv = csv
+        self.password = password
+    def run(self):
+        # loop through csv and check if user is present in file
+        # if user present then check if password is correct for user
+        # if not create new user with such password
+        # passwords should be hashed and comparison with hashed passwords
+        users_pass = {}
+        f = open(self.csv, 'r')
+        for i in f.readlines():
+            users_pass[i.split(',')[0]] = i.split(',')[1].strip()
+        #print(self.input, users_pass.keys())
+        if self.input in users_pass.keys():
+            print('username found')
+            print(users_pass[self.input])
+            print(self.password)
+            if users_pass[self.input] == hashlib.sha1(self.password.encode()).hexdigest():
+                print('user matches password')
+            else: print('password incorrect')
+        else: print('username not found')
+def presence_check(input):
+    # checks if some text has been input
+    if input != '':
+        return True
+    else: return False
+
+def len_check(input, target_length):
+    # checks the length of the input
+    if len(input) <= target_length:
+        return True
+    else: return False
+
+def type_check(input, target_type):
+    # checks the type of the input
+    if type(input) == type(target_type):
+        return True
+    else: return False
+
+class NewUser():
+    def __init__(self, csv, username, password):
+        self.csv = csv
+        self.username = username
+        self.password = password
+    def run(self):
+        # checks if username is already in file
+        # if not then add user to file and add hashed password
+        f = open(self.csv, 'r')
+        for i in f.readlines():
+            if i.split(',')[0] == self.username:
+                print('user already exists')
+            else:
+                f.close()
+                f = open(self.csv, 'a')
+                f.write(self.username + ',' + hashlib.sha1(self.password.encode()).hexdigest() + '\n')
+                f.close()
+                print('user created')
+                break

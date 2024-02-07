@@ -22,6 +22,7 @@ BLUE_BUTTON_HOVER = pygame.transform.rotozoom(pygame.image.load(os.path.join("Ke
 
 # Text constants
 FONT = pygame.font.Font('freesansbold.ttf', 32) # sets font for text
+FONT_26 = pygame.font.Font('freesansbold.ttf', 26)
 TITLE_FONT = pygame.font.Font('freesansbold.ttf', 54)
 
 # Game constants
