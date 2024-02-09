@@ -6,7 +6,7 @@ pygame.display.init()
 pygame.font.init()
 from consts import *
 from collections import deque
-
+from utils import Button, Quit
 
 ##################################
 ############ SCREEN ##############
@@ -141,7 +141,7 @@ class Pathfinder:
         self.path = []
 
         # AI Car
-        self.car = AICar(3,1, self.empty_path)
+        self.car = AICar(1,3, self.empty_path)
     
     # EMPTY PATH #
     def empty_path(self): # clears the path 
@@ -340,7 +340,7 @@ class AICar(AbsractCar):
     
     # UPDATE #
     def update(self):
-        self.pos += self.direction * 2
+        self.pos += self.direction
         self.check_collisions()
         self.rect.center = self.pos
 
@@ -392,6 +392,36 @@ class Main():
         self.parcels = pygame.sprite.Group()
         self.deliveries = 3
 
+        # pausing the game
+        self.pause = False
+
+    def pause_game(self):
+        self.pause = True
+        self.resume_button = Button('Resume',self,300,60, (WIDTH//2 -150,250),6, 32)
+        self.quit_button = Button('Quit',Quit,300,60, (WIDTH//2 -150,450),6, 32)
+        self.options_button = Button('Options','Options Class',300,60, (WIDTH//2 -150,350),6, 32)
+		# Create pause loop
+        while self.pause:
+			# Account For Hitting Enter to unPause
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        self.pause = False
+				# Account for clicking the X to quit
+                if event.type == pygame.QUIT:
+                    self.pause = False
+                    self.running = False
+                    pygame.quit()
+            self.resume_button.draw(SCREEN)
+            self.quit_button.draw(SCREEN)
+            self.options_button.draw(SCREEN)
+
+            pygame.display.flip()
+
+    def run(self):
+        self.pause = False
+
+
     # CREATE PARCELS #
     def create_parcels(self):
         track_mask = pygame.mask.from_surface(TRACK)
@@ -411,7 +441,7 @@ class Main():
             else:pass
 
     # RUN GAME #
-    def run(self):
+    def play(self):
         self.create_parcels()
         self.pathfinder = Pathfinder(TRACK_GRID,self.parcels)
 
@@ -424,6 +454,14 @@ class Main():
             # QUIT #
             if event.type == pygame.QUIT:
                 quit()
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    if self.pause:
+                        self.pause = False
+                    else:
+                        self.pause_game()
+                else: pass
             
             # KEY PRESSES #
             keys = pygame.key.get_pressed()
@@ -476,6 +514,9 @@ class Main():
                 #print(shortest_path)
                 self.pathfinder.car.set_path(shortest_path)
                 self.pathfinder.car.haspath = True
+                if self.pathfinder.car.pos == (target[1],target[0]):
+                    self.pathfinder.car.haspath = False
+                else: pass
                 #print(TRACK_GRID)
 
             # TEXT #
@@ -490,5 +531,5 @@ class Main():
             pygame.display.flip()   
 
 ## RUN GAME ##
-##  main = Main() ##
-##   main.run()   ##
+game = Main()
+game.play()

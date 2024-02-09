@@ -2,7 +2,6 @@ import pygame
 from consts import *
 from utils import *
 from main import Main
-game = Main()
 
 class Login():
     def __init__(self):

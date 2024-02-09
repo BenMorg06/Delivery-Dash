@@ -1,7 +1,6 @@
 import pygame, hashlib
 from consts import *
 
-
 # button class
 class Button():
     def __init__(self, text, action, width, height,pos, elevation, font_size):
@@ -157,7 +156,7 @@ class Validation():
             print(users_pass[self.input])
             print(self.password)
             if users_pass[self.input] == hashlib.sha1(self.password.encode()).hexdigest():
-                print('user matches password')
+                game.run()
             else: print('password incorrect')
         else: print('username not found')
 def presence_check(input):
