@@ -373,7 +373,6 @@ class Parcel(pygame.sprite.Sprite):
 ########### MAIN CLASS ###########
 ##################################
 class Main():
-
     # INIT #
     def __init__(self):
         #print(Track_Grid)
@@ -532,5 +531,9 @@ class Main():
             pygame.display.flip()   
 
 ## RUN GAME ##
-game = Main()
-game.play()
+class running():
+    def __init__(self):
+        pass
+    def run(self):
+        game = Main()
+        game.play()
