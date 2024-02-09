@@ -6,7 +6,8 @@ pygame.display.init()
 pygame.font.init()
 from consts import *
 from collections import deque
-from utils import Button, Quit
+from utils import *
+from options import *
 
 ##################################
 ############ SCREEN ##############
@@ -399,7 +400,7 @@ class Main():
         self.pause = True
         self.resume_button = Button('Resume',self,300,60, (WIDTH//2 -150,250),6, 32)
         self.quit_button = Button('Quit',Quit,300,60, (WIDTH//2 -150,450),6, 32)
-        self.options_button = Button('Options','Options Class',300,60, (WIDTH//2 -150,350),6, 32)
+        self.options_button = Button('Options',Options(),300,60, (WIDTH//2 -150,350),6, 32)
 		# Create pause loop
         while self.pause:
 			# Account For Hitting Enter to unPause
