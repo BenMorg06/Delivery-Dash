@@ -13,11 +13,11 @@ class Button():
 
         # top rect
         self.top_rect = pygame.Rect(pos,(width,height))
-        self.top_color = '#475F77'
+        self.top_color = '#52B788'
 
         # bottom rect
         self.bottom_rect = pygame.Rect(pos,(width,elevation))
-        self.bottom_color = '#354B5E'
+        self.bottom_color = '#2D6A4F'
 
         # text
         self.text = text
@@ -46,7 +46,7 @@ class Button():
                     
         else:
             self.dynamic_elevation = self.elevation
-            self.top_color = '#475F77'
+            self.top_color = '#52B788'
 
     # draw the buttons
     def draw(self, screen):
@@ -80,11 +80,11 @@ class TextBox():
 
         # top rect
         self.top_rect = pygame.Rect(pos,(width,height))
-        self.top_color = '#475F77'
+        self.top_color = '#52B788'
 
         # bottom rect
         self.bottom_rect = pygame.Rect(pos,(width,elevation))
-        self.bottom_color = '#354B5E'
+        self.bottom_color = '#2D6A4F'
 
         # text
         self.original_text = text
@@ -119,7 +119,7 @@ class TextBox():
             self.text = self.original_text
             self.pressed = False
             if not self.pressed:
-                self.top_color = '#475F77'
+                self.top_color = '#52B788'
 
     # draw the buttons
     def draw(self, screen):
@@ -136,3 +136,65 @@ class TextBox():
         self.text_rect = self.text_surf.get_rect(center = self.top_rect.center)
         screen.blit(self.text_surf, self.text_rect)
         self.on_click()
+    
+class Tabs():
+    def __init__(self, width, height,pos):
+        # top rect
+        self.top_rect = pygame.Rect(pos,(width,height))
+        self.top_color = '#D8F3DC'
+
+        # bottom rect
+        self.border_rect = pygame.Rect((pos[0]-7.5,pos[1]-7.5),(width+15,height+15))
+        self.border_color = '#B7E4C7'
+    
+    # draw
+    def draw(self, screen):
+        pygame.draw.rect(screen,self.border_color,self.border_rect, border_radius=12)
+        pygame.draw.rect(screen, self.top_color, self.top_rect, border_radius=12)
+
+class Arrows():
+    def __init__(self,points,pos,action):
+
+        # top rect
+        self.points = points
+        self.polygon_rect = pygame.Rect(pos,(abs(points[0][0]-points[2][0]), abs(points[0][1]-points[1][1])))
+        self.top_color = '#52B788'
+
+        # action
+        self.action = action
+        self.pressed = False    
+    
+    # run task when clicked
+    def on_click(self):
+        mouse_pos = pygame.mouse.get_pos()
+        # this logic ensures the button is only clicked once
+        if self.polygon_rect.collidepoint(mouse_pos):
+            self.top_color = '#D74B4B'
+            if pygame.mouse.get_pressed()[0]:
+                self.pressed = True
+            else:
+                if self.pressed == True:
+                    self.pressed = False
+                    self.tab_index = self.action.run(self.tab_index)
+        else:
+            self.top_color = '#52B788'
+    
+    def update_tab(self):
+        return self.tab_index
+    # draw the buttons
+    def draw(self, screen, tab_index):
+        pygame.draw.polygon(screen,self.top_color, self.points)
+        self.tab_index = tab_index
+        self.on_click()
+        #pygame.draw.rect(screen, self.top_color, self.polygon_rect)
+
+class TabIncrease():
+    def __init__():
+        pass
+    def run(tab_index):
+        return tab_index+1
+class TabDecrease():
+    def __init__():
+        pass
+    def run(tab_index):
+        return tab_index-1

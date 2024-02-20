@@ -4,7 +4,6 @@ from utils import Button, Quit
 from login import Login
 
 class Menu():
-
     def __init__(self):
         self.screen = pygame.display.set_mode((WIDTH,HEIGHT))
         self.running = True
@@ -24,14 +23,13 @@ class Menu():
                 if event.type == pygame.QUIT:
                     quit()
 
-            self.screen.fill((34, 40, 49)) 
+            self.screen.fill('#1B4332') 
             self.start_button.draw(self.screen)
             self.quit_button.draw(self.screen)
             self.highscore_button.draw(self.screen)
         
             # draw the title
             self.screen.blit(self.title, self.title_rect)
-            
             
             pygame.display.flip()
             CLOCK.tick(FPS)
@@ -40,4 +38,3 @@ class Menu():
 
 menu = Menu()
 menu.run()
-

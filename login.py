@@ -69,7 +69,7 @@ class Login():
                         
                     
             #print(self.password_box.value)
-            self.screen.fill((34, 40, 49)) 
+            self.screen.fill('#1B4332') 
             self.username_box.draw(self.screen)
             self.password_box.draw(self.screen)
             self.login_button.draw(self.screen)

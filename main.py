@@ -27,7 +27,6 @@ def blit_rotate_centre(win, img, top_left, angle):
     # making it appear like we rotated around the center of the original image
     win.blit(rotated_img, new_rect.topleft)
 
-
 ##################################
 ######### MATHS UTILITY ##########
 ##################################
