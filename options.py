@@ -1,6 +1,7 @@
 import pygame
 from consts import *
 from utils import *
+
 class Options():
     def __init__(self):
         self.running = True
@@ -26,7 +27,6 @@ class Options():
         
             # draw the title
             self.screen.blit(self.title, self.title_rect)
-            
             
             pygame.display.flip()
             CLOCK.tick(FPS)

@@ -15,18 +15,6 @@ from options import *
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT), pygame.HWSURFACE | pygame.DOUBLEBUF) # sets dimensions of window
 pygame.display.set_caption("Delivery Dash") # sets name of window
 
-
-##################################
-######### IMAGE UTILITY ##########
-##################################
-def blit_rotate_centre(win, img, top_left, angle):
-    rotated_img = pygame.transform.rotate(img, angle)
-    new_rect = rotated_img.get_rect(center=img.get_rect(topleft=top_left).center)
-    # here we rotate the original image
-    # we create a new rectangle to remove the offset from the original rotation
-    # making it appear like we rotated around the center of the original image
-    win.blit(rotated_img, new_rect.topleft)
-
 ##################################
 ######### MATHS UTILITY ##########
 ##################################
@@ -45,7 +33,6 @@ def round(number):
 class AbsractCar():
     # INIT #
     def __init__(self, max_vel, rotation_vel):
-        self.img = self.IMG
         self.max_vel = max_vel
         self.vel = 0 #car starts stationary
         self.rotation_vel = rotation_vel
@@ -120,8 +107,10 @@ class AbsractCar():
 ######## PLAYER CAR CLASS ########
 ##################################
 class PlayerCar(AbsractCar):
-    IMG = RED_CAR
     START_POS = 13,24
+    def __init__(self,max_rotation,max_vel,car_img):
+        self.img = pygame.transform.rotozoom(car_img,0,0.5)
+        super().__init__(max_rotation,max_vel)
 
     # UPDATE #
     def update(self):
@@ -233,7 +222,7 @@ class Pathfinder:
                 y = (point[1]*48)+24
                 points.append((x,y))
 
-            pygame.draw.lines(SCREEN, '#4a4a4a', False, points, 5)
+            #pygame.draw.lines(SCREEN, '#4a4a4a', False, points, 5)
     
     # UPDATE #
     def update(self):
@@ -252,6 +241,7 @@ class AICar(AbsractCar):
 
     # INIT #
     def __init__(self, max_vel, rotation_vel ,empty_path):
+        self.img = self.IMG
         super().__init__(max_vel, rotation_vel) # initiates the parent class - Abstract Car
         # print('Initialized'); testing
 
@@ -373,23 +363,25 @@ class Parcel(pygame.sprite.Sprite):
 ##################################
 class Main():
     # INIT #
-    def __init__(self):
+    def __init__(self,car_img):
         #print(Track_Grid)
         # setting up the loop
         self.running = True
 
         # Instantiating player car
-        self.player_car = PlayerCar(1,3)
+        self.player_car = PlayerCar(3,1,car_img)
 
         # Create Text
         self.text = FONT.render(f"Score: {self.player_car.points}", False, "#ffffff", (0,200,0)) # 
         self.textRect = self.text.get_rect()
+        self.text2 = FONT.render(f'Score: {self.player_car.points}', False, "#ffffff", (0,200,0)) #
+        self.textRect2 = self.text2.get_rect()
         # Set the center of the rectangular object.
         self.textRect.center = (600,650)
+        self.textRect2.center = (600, 675)
 
         # creating parcels list
         self.parcels = pygame.sprite.Group()
-        self.deliveries = 3
 
         # pausing the game
         self.pause = False
@@ -401,7 +393,7 @@ class Main():
         self.options_button = Button('Options',Options(),300,60, (WIDTH//2 -150,350),6, 32)
 		# Create pause loop
         while self.pause:
-			# Account For Hitting Enter to unPause
+			# Account For Hitting Escape to unPause
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
@@ -416,10 +408,37 @@ class Main():
             self.options_button.draw(SCREEN)
 
             pygame.display.flip()
+    
+    def win(self, winner):
+        from lobby import Lobby
+        if winner == 'player':
+            pass
+            # add a win to the player in the high score file
+        self.winning = True
+        self.title = TITLE_FONT.render('Delivery Dash', False, '#ffffff')
+        self.title_rect = self.title.get_rect(center = (WIDTH//2, 68))
+        self.lobby_button = Button('Lobby',Lobby(),300,60, (WIDTH//2 -150,250),6, 32)
+        self.quit_button = Button('Quit',Quit,300,60, (WIDTH//2 -150,450),6,32)
+        self.tab = Tabs(600,450,(WIDTH//2 -300 , HEIGHT//2 -200))
+        while self.winning:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.winning = False
+                    self.running = False
+                    pygame.quit()
+            SCREEN.fill('#1B4332')
+            self.tab.draw(SCREEN)
+            self.lobby_button.draw(SCREEN)
+            self.quit_button.draw(SCREEN)
+            SCREEN.blit(self.title, self.title_rect)
+            self.text = FONT.render(f"{winner} Won!", False, "#ffffff", (0,200,0)) #
+            self.textRect = self.text.get_rect()
+            self.textRect.center = (600,650)
+            SCREEN.blit(self.text, self.textRect)
+            pygame.display.flip()
 
     def run(self):
         self.pause = False
-
 
     # CREATE PARCELS #
     def create_parcels(self):
@@ -437,7 +456,7 @@ class Main():
                     visited.append((row,col))
                     self.parcels.add(parcel)
                 else: pass
-            else:pass
+            else: pass
 
     # RUN GAME #
     def play(self):
@@ -519,11 +538,15 @@ class Main():
                 #print(TRACK_GRID)
 
             # TEXT #
-            if self.player_car.points == 5:
-                text = FONT.render(f"Score: {self.player_car.points}, Player Wins!", False, "#ffffff", (0,200,0))
-            else:
-                text = FONT.render(f"Score: {self.player_car.points}", False, "#ffffff", (0,200,0))
+            if self.player_car.points > self.pathfinder.car.points and self.player_car.points + self.pathfinder.car.points == 5:
+                self.win('PLAYER')
+            elif self.player_car.points < self.pathfinder.car.points and self.player_car.points + self.pathfinder.car.points == 5:
+                self.win('AI')
+            
+            text = FONT.render(f"Score: {self.player_car.points}", False, "#ffffff", (0,200,0))
+            text2 = FONT.render(f"Score: {self.pathfinder.car.points}", False, "#ffffff", (0,200,0))
             SCREEN.blit(text, self.textRect)
+            SCREEN.blit(text2, self.textRect2)
 
             # UPDATE SCREEN #
             CLOCK.tick(FPS) # limit fps 
@@ -531,8 +554,8 @@ class Main():
 
 ## RUN GAME ##
 class running():
-    def __init__(self):
-        pass
+    def __init__(self, car_img):
+        self.car_img = car_img
     def run(self):
-        game = Main()
+        game = Main(self.car_img)
         game.play()

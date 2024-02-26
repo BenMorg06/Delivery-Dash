@@ -14,6 +14,8 @@ TRACK = pygame.image.load(os.path.join("Assets","city map 1.png"))
 TRACK_BORDER = pygame.image.load(os.path.join("Assets", "map_grass.png")) # draw with rectangles potentially
 RED_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets/kenney-racing-pack/PNG/Cars","car_red_small_4.png")), 180, 0.5) # scales images to the correct size
 YELLOW_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets/kenney-racing-pack/PNG/Cars","car_yellow_small_4.png")), 180, 0.5)
+BLUE_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets/kenney-racing-pack/PNG/Cars","car_blue_small_4.png")), 180, 0.5)
+GREEN_CAR = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets/kenney-racing-pack/PNG/Cars","car_green_small_4.png")), 180, 0.5)
 PARCEL = pygame.transform.rotozoom(pygame.image.load(os.path.join("Assets","parcel.png")), 0, 0.1)
 
 # Text constants

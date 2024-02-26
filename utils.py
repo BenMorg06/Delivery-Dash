@@ -1,6 +1,17 @@
 import pygame
 from consts import *
-#from lobby import *
+
+##################################
+######### IMAGE UTILITY ##########
+##################################
+def blit_rotate_centre(win, img, top_left, angle):
+    rotated_img = pygame.transform.rotate(img, angle)
+    new_rect = rotated_img.get_rect(center=img.get_rect(topleft=top_left).center)
+    # here we rotate the original image
+    # we create a new rectangle to remove the offset from the original rotation
+    # making it appear like we rotated around the center of the original image
+    win.blit(rotated_img, new_rect.topleft)
+
 
 # button class
 class Button():

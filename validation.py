@@ -16,13 +16,13 @@ class Validation():
             users_pass[i.split(',')[0]] = i.split(',')[1].strip()
         #print(self.input, users_pass.keys())
         if self.input in users_pass.keys():
-            print('username found')
-            print(users_pass[self.input])
-            print(self.password)
+            #print('username found')
+            #print(users_pass[self.input])
+            #print(self.password)
             if users_pass[self.input] == hashlib.sha1(self.password.encode()).hexdigest():
                 Lobby().run()
-            else: print('password incorrect')
-        else: print('username not found')
+            else: pass#print('password incorrect')
+        else: pass#print('username not found')
 def presence_check(input):
     # checks if some text has been input
     if input != '':

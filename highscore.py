@@ -1,23 +1,20 @@
 import pygame
 from consts import *
-from utils import Button, Quit
-from login import Login
-from highscore import Highscore
-
-class Menu():
+from utils import *
+from main import *
+class Highscore():
     def __init__(self):
         self.screen = pygame.display.set_mode((WIDTH,HEIGHT))
         self.running = True
-        self.login = Login()
         self.quit = Quit()
-        self.start_button = Button('Start',self.login,300,60, (WIDTH//2 -150,250),6, 32)
-        self.quit_button = Button('Quit',Quit,300,60, (WIDTH//2 -150,450),6, 32)
-        self.highscore_button = Button('Highscore',Highscore(),300,60, (WIDTH//2 -150,350),6, 32)
+        self.tab = Tabs(600,450,(WIDTH//2 -300 , HEIGHT//2 -200))
         self.title = TITLE_FONT.render('Delivery Dash', False, '#ffffff')
         self.title_rect = self.title.get_rect(center = (WIDTH//2, 68))
+        self.highscore = TITLE_FONT.render('Highscore', False, '#2D6A4F')
+        self.highscore_rect = self.highscore.get_rect(center =(WIDTH//2, 200))
+        self.quit_button = Button('Quit',Quit,150,60, (WIDTH//2 +100 ,525),6, 32)
 
     def run(self):
-        # main menu loop
         while self.running:
             # quitting the game
             for event in pygame.event.get():
@@ -25,17 +22,14 @@ class Menu():
                     quit()
 
             self.screen.fill('#1B4332') 
-            self.start_button.draw(self.screen)
+            self.tab.draw(self.screen)
             self.quit_button.draw(self.screen)
-            self.highscore_button.draw(self.screen)
-        
             # draw the title
             self.screen.blit(self.title, self.title_rect)
+            self.screen.blit(self.highscore, self.highscore_rect)
             
             pygame.display.flip()
             CLOCK.tick(FPS)
 
-
-
-menu = Menu()
-menu.run()
+#test = Highscore()
+#test.run()
