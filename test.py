@@ -1,2 +1,2 @@
-import hashlib
-print(hashlib.sha1('Password123!'.encode()).hexdigest())
+#f = open('current_user.txt', 'r')
+#print(f.read())

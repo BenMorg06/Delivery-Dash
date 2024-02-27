@@ -108,9 +108,9 @@ class AbsractCar():
 ##################################
 class PlayerCar(AbsractCar):
     START_POS = 13,24
-    def __init__(self,max_rotation,max_vel,car_img):
+    def __init__(self,max_vel,max_rotation,car_img):
         self.img = pygame.transform.rotozoom(car_img,0,0.5)
-        super().__init__(max_rotation,max_vel)
+        super().__init__(max_vel,max_rotation)
 
     # UPDATE #
     def update(self):
@@ -369,7 +369,7 @@ class Main():
         self.running = True
 
         # Instantiating player car
-        self.player_car = PlayerCar(3,1,car_img)
+        self.player_car = PlayerCar(1,2,car_img)
 
         # Create Text
         self.text = FONT.render(f"Score: {self.player_car.points}", False, "#ffffff", (0,200,0)) # 
@@ -411,8 +411,24 @@ class Main():
     
     def win(self, winner):
         from lobby import Lobby
-        if winner == 'player':
-            pass
+        if winner == 'PLAYER':
+            current_points = 0
+            f = open('current_user.csv', 'r')
+            current_user = f.read()
+            f.close()
+            user_scores = {}
+            f = open('highscores.csv', 'r')
+            for line in f:
+                user_scores[line.split(',')[0]] = line.split(',')[1].strip()
+                if line.split(',')[0] == current_user:
+                    current_points = line.split(',')[1]
+                else:pass
+            user_scores[current_user] = str(int(current_points) + 1)
+            os.remove('highscores.csv')
+            f = open('highscores.csv', 'w')
+            for user in user_scores:
+                f.write(user + ',' + user_scores[user] + '\n')
+            f.close()
             # add a win to the player in the high score file
         self.winning = True
         self.title = TITLE_FONT.render('Delivery Dash', False, '#ffffff')

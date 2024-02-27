@@ -20,6 +20,8 @@ class Validation():
             #print(users_pass[self.input])
             #print(self.password)
             if users_pass[self.input] == hashlib.sha1(self.password.encode()).hexdigest():
+                f = open('current_user.txt', 'w')
+                f.write(self.input)
                 Lobby().run()
             else: pass#print('password incorrect')
         else: pass#print('username not found')
