@@ -4,11 +4,12 @@ It is going to be a game where the player races agaisnt an AI to deliver all par
 
 PYTHON FILES
 Utils.py:
-Consts.py
+Consts.py:
 Menu.py:
 Login.py:
 Lobby.py:
 Main.py:
+- Hold the code for the gameplay and AI
 Validation.py:
 Options.py:
 Highscore.py:
