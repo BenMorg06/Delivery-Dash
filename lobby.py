@@ -26,8 +26,6 @@ class Lobby():
         self.green_car_image = pygame.transform.rotozoom(GREEN_CAR,0,2)
         self.green_car_rect = self.green_car_image.get_rect(center = (WIDTH//2-150, 400))
         self.player_car = [self.red_car_image, self.red_car_rect]
-        self.highscore = TITLE_FONT.render('Highscore', False, '#2D6A4F')
-        self.highscore_rect = self.highscore.get_rect(center =(WIDTH//2, 250))
         self.track_bg = pygame.Rect(WIDTH//2,250, WIDTH//5, HEIGHT//5)
         self.start_button = Button('Play',running(self.player_car[0]),150,60, (WIDTH//2 -250,425),6, 32)
 
@@ -37,6 +35,8 @@ class Lobby():
 
     # get values for highscores and create text
     def highscore_text(self,):
+        self.highscore = TITLE_FONT.render('Highscore', False, '#2D6A4F')
+        self.highscore_rect = self.highscore.get_rect(center =(WIDTH//2, 250))
         user_scores = get_highscore()
         # text for highscores
         self.first_user = FONT.render(f"{list(user_scores.keys())[0]} : {list(user_scores.values())[0]}", False, '#2D6A4F') #
@@ -45,9 +45,26 @@ class Lobby():
         self.first_rect = self.first_user.get_rect(midleft = (WIDTH//2 -200, 300))
         self.second_rect = self.second_user.get_rect(midleft = (WIDTH//2 -200, 350))
         self.third_rect = self.third_user.get_rect(midleft = (WIDTH//2 -200, 400))
+    
+    def tutorial_text(self):
+        self.tutorial = TITLE_FONT.render('Tutorial', False, '#2D6A4F')
+        self.tutorial_rect = self.tutorial.get_rect(center =(WIDTH//2, 250))
+        self.w_control = FONT.render(f"W : FORWARDS", False, '#2D6A4F') #
+        self.a_control = FONT.render(f"A : LEFT", False, '#2D6A4F') #
+        self.s_control = FONT.render(f"S : BACKWARDS", False, '#2D6A4F') #
+        self.d_control = FONT.render(f"D : RIGHT", False, '#2D6A4F') #
+        self.w_rect = self.w_control.get_rect(midleft = (WIDTH//2 -250, 300))
+        self.a_rect = self.a_control.get_rect(midleft = (WIDTH//2 -250, 350))
+        self.s_rect = self.s_control.get_rect(midleft = (WIDTH//2 -250, 400))
+        self.d_rect = self.d_control.get_rect(midleft = (WIDTH//2 -250, 450))
+        #self.desc = FONT_26.render("Drive into all the parcels",False, '#2D6A4F')
+        #self.desc_rect = self.desc.get_rect(midleft = (WIDTH//2 -50, 350))
+
+
     # RUN #
     def run(self):
         self.highscore_text()
+        self.tutorial_text()
         while self.running:
             # quitting the game
             for event in pygame.event.get():
@@ -90,11 +107,20 @@ class Lobby():
                 self.screen.blit(self.second_user, self.second_rect)
                 self.screen.blit(self.third_user, self.third_rect)
                 self.quit_button.draw(self.screen)
+            # Tutorial Tab
+            elif self.tab_index == 3:
+                self.screen.blit(self.tutorial, self.tutorial_rect)
+                self.screen.blit(self.w_control, self.w_rect)
+                self.screen.blit(self.a_control, self.a_rect)
+                self.screen.blit(self.s_control, self.s_rect)
+                self.screen.blit(self.d_control, self.d_rect)
+                self.screen.blit(self.desc, self.desc_rect)
+                self.quit_button.draw(self.screen)
             # Shop Tab (PHASE TWO)
                 
             # Loop tabs
             elif self.tab_index <0:
-                self.tab_index = 2
+                self.tab_index = 3
                 self.screen.blit(self.highscore, self.highscore_rect)
                 self.quit_button.draw(self.screen)
             else:
