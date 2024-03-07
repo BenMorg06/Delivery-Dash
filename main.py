@@ -46,9 +46,9 @@ class AbsractCar():
     def rotate(self, left=False, right=False):
         # rotates the car depending on keys pressed
         if left:
-            self.angle+=self.rotation_vel
+            self.angle+= 90
         elif right:
-            self.angle-=self.rotation_vel
+            self.angle-= 90
 
     # MOVE FORWARDS #
     def move_forward(self):
@@ -391,7 +391,7 @@ class Main():
         # Set pause state True for the while loop
         self.pause = True
         # Create buttons
-        self.resume_button = Button('Resume',self,300,60, (WIDTH//2 -150,250),6, 32)
+        self.resume_button = Button('Resume',running,300,60, (WIDTH//2 -150,250),6, 32)
         self.quit_button = Button('Quit',Quit,300,60, (WIDTH//2 -150,450),6, 32)
         self.options_button = Button('Options',Options(self),300,60, (WIDTH//2 -150,350),6, 32)
 		# Create pause loop
@@ -512,13 +512,17 @@ class Main():
                         self.pause_game()
                 else: pass
             
+                if event.key == pygame.K_a:
+                    self.player_car.rotate(left=True)
+                else: pass
+                if event.key == pygame.K_d:
+                    self.player_car.rotate(right=True)
+                else: pass
+            
+            
             # KEY PRESSES #
             keys = pygame.key.get_pressed()
             moved = False
-            if keys[pygame.K_a]:
-                self.player_car.rotate(left=True)
-            if keys[pygame.K_d]:
-                self.player_car.rotate(right=True)
             if keys[pygame.K_w]:
                 moved = True
                 self.player_car.move_forward()
