@@ -35,9 +35,19 @@ class Lobby():
     def update_buttons(self):
         self.start_button = Button('Play',running(self.player_car[0]),150,60, (WIDTH//2 -250,425),6, 32)
 
+    # get values for highscores and create text
+    def highscore_text(self,):
+        user_scores = get_highscore()
+        # text for highscores
+        self.first_user = FONT.render(f"{list(user_scores.keys())[0]} : {list(user_scores.values())[0]}", False, '#2D6A4F') #
+        self.second_user = FONT.render(f"{list(user_scores.keys())[1]} : {list(user_scores.values())[1]}", False, '#2D6A4F') #
+        self.third_user = FONT.render(f"{list(user_scores.keys())[2]} : {list(user_scores.values())[2]}", False, '#2D6A4F') #
+        self.first_rect = self.first_user.get_rect(midleft = (WIDTH//2 -200, 300))
+        self.second_rect = self.second_user.get_rect(midleft = (WIDTH//2 -200, 350))
+        self.third_rect = self.third_user.get_rect(midleft = (WIDTH//2 -200, 400))
     # RUN #
     def run(self):
-
+        self.highscore_text()
         while self.running:
             # quitting the game
             for event in pygame.event.get():
@@ -76,6 +86,9 @@ class Lobby():
             # Highscore Tab
             elif self.tab_index == 2:
                 self.screen.blit(self.highscore, self.highscore_rect)
+                self.screen.blit(self.first_user, self.first_rect)
+                self.screen.blit(self.second_user, self.second_rect)
+                self.screen.blit(self.third_user, self.third_rect)
                 self.quit_button.draw(self.screen)
             # Shop Tab (PHASE TWO)
                 
@@ -102,5 +115,5 @@ class Lobby():
             
             pygame.display.flip()
             CLOCK.tick(FPS)
-#test = Lobby()
-#test.run()
+test = Lobby()
+test.run()

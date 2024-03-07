@@ -3,6 +3,7 @@ import pygame
 from consts import *
 from utils import *
 from main import *
+from login import *
 
 # HIGHSCORE #
 class Highscore():
@@ -18,23 +19,11 @@ class Highscore():
         self.highscore = TITLE_FONT.render('Highscore', False, '#2D6A4F')
         self.highscore_rect = self.highscore.get_rect(center =(WIDTH//2, 200))
         self.quit_button = Button('Quit',Quit,150,60, (WIDTH//2 +100 ,525),6, 32)
+        self.back_button = Button("Login", Login(), 150,60,(WIDTH//2-250,525),6, 32)
 
     # Get Highscore #
-    def get_highscore(self):
-        f = open('highscores.csv','r')
-        scores = f.readlines()
-        user_scores = {}
-        # sorts highscores into a dictionary
-        while len(user_scores) != len(scores):
-            highscore = 0
-            user = ''
-            for i in scores:
-                # makes sure the next entry in the dictionary is the highest score from a user not already there
-                if highscore < int(i.split(',')[1]) and i.split(',')[0] not in user_scores:
-                    highscore = int(i.split(',')[1])
-                    user = i.split(',')[0]
-                else: pass
-            user_scores[user] = int(highscore)
+    def highscore_text(self,):
+        user_scores = get_highscore()
         # text for highscores
         self.first_user = FONT.render(f"{list(user_scores.keys())[0]} : {list(user_scores.values())[0]}", False, '#2D6A4F') #
         self.second_user = FONT.render(f"{list(user_scores.keys())[1]} : {list(user_scores.values())[1]}", False, '#2D6A4F') #
@@ -45,6 +34,8 @@ class Highscore():
 
     # RUN #
     def run(self):
+        # gets highscores
+        self.highscore_text()
         # loop
         while self.running:
             # quitting the game
@@ -55,6 +46,7 @@ class Highscore():
             self.screen.fill('#1B4332') 
             self.tab.draw(self.screen)
             self.quit_button.draw(self.screen)
+            self.back_button.draw(self.screen)
             # draw the title
             self.screen.blit(self.title, self.title_rect)
             self.screen.blit(self.highscore, self.highscore_rect)
@@ -65,6 +57,6 @@ class Highscore():
             pygame.display.flip()
             CLOCK.tick(FPS)
 
-test = Highscore()
-test.get_highscore()
-test.run()
+#test = Highscore()
+#test.get_highscore()
+#test.run()

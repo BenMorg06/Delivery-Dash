@@ -40,7 +40,11 @@ class Menu():
             pygame.display.flip()
             CLOCK.tick(FPS)
 
-
+class Return:
+    def __init__():
+        pass
+    def run():
+        Menu().run
 # start up menu for the game
 menu = Menu()
 menu.run()

@@ -209,3 +209,20 @@ class TabDecrease():
         pass
     def run(tab_index):
         return tab_index-1
+    
+def get_highscore():
+        f = open('highscores.csv','r')
+        scores = f.readlines()
+        user_scores = {}
+        # sorts highscores into a dictionary
+        while len(user_scores) != len(scores):
+            highscore = 0
+            user = ''
+            for i in scores:
+                # makes sure the next entry in the dictionary is the highest score from a user not already there
+                if highscore < int(i.split(',')[1]) and i.split(',')[0] not in user_scores:
+                    highscore = int(i.split(',')[1])
+                    user = i.split(',')[0]
+                else: pass
+            user_scores[user] = int(highscore)
+        return user_scores
