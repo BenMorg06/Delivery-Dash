@@ -1,9 +1,14 @@
+# IMPORTS #
 import pygame
 from consts import *
 from utils import *
 from main import *
+
+# HIGHSCORE #
 class Highscore():
+    # INIT #
     def __init__(self):
+        # Sets screen and graphics objects
         self.screen = pygame.display.set_mode((WIDTH,HEIGHT))
         self.running = True
         self.quit = Quit()
@@ -14,13 +19,19 @@ class Highscore():
         self.highscore_rect = self.highscore.get_rect(center =(WIDTH//2, 200))
         self.quit_button = Button('Quit',Quit,150,60, (WIDTH//2 +100 ,525),6, 32)
 
+    # Get Highscore #
+    def get_highscore(self):
+        pass
+
+    # RUN #
     def run(self):
+        # loop
         while self.running:
             # quitting the game
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     quit()
-
+            # graphics
             self.screen.fill('#1B4332') 
             self.tab.draw(self.screen)
             self.quit_button.draw(self.screen)
@@ -31,5 +42,5 @@ class Highscore():
             pygame.display.flip()
             CLOCK.tick(FPS)
 
-#test = Highscore()
-#test.run()
+test = Highscore()
+test.run()

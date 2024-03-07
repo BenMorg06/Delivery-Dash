@@ -386,11 +386,14 @@ class Main():
         # pausing the game
         self.pause = False
 
+    # PAUSE GAME #
     def pause_game(self):
+        # Set pause state True for the while loop
         self.pause = True
+        # Create buttons
         self.resume_button = Button('Resume',self,300,60, (WIDTH//2 -150,250),6, 32)
         self.quit_button = Button('Quit',Quit,300,60, (WIDTH//2 -150,450),6, 32)
-        self.options_button = Button('Options',Options(),300,60, (WIDTH//2 -150,350),6, 32)
+        self.options_button = Button('Options',Options(self),300,60, (WIDTH//2 -150,350),6, 32)
 		# Create pause loop
         while self.pause:
 			# Account For Hitting Escape to unPause
@@ -403,33 +406,43 @@ class Main():
                     self.pause = False
                     self.running = False
                     pygame.quit()
+
+            # Draw Buttons
             self.resume_button.draw(SCREEN)
             self.quit_button.draw(SCREEN)
             self.options_button.draw(SCREEN)
 
             pygame.display.flip()
     
+    # WIN #
     def win(self, winner):
+        # Import Lobby class
         from lobby import Lobby
+        # Check if winner is the player
         if winner == 'PLAYER':
             current_points = 0
+            # Get the current users name
             f = open('current_user.csv', 'r')
             current_user = f.read()
             f.close()
             user_scores = {}
+            # get the users current number of wins from the highscore.csv file
             f = open('highscores.csv', 'r')
             for line in f:
                 user_scores[line.split(',')[0]] = line.split(',')[1].strip()
                 if line.split(',')[0] == current_user:
                     current_points = line.split(',')[1]
                 else:pass
+            # increases the score of the current user by 1 in the dictionary
             user_scores[current_user] = str(int(current_points) + 1)
+            # writes over the highscores file
             os.remove('highscores.csv')
             f = open('highscores.csv', 'w')
             for user in user_scores:
                 f.write(user + ',' + user_scores[user] + '\n')
             f.close()
-            # add a win to the player in the high score file
+
+        # set up for the win screen
         self.winning = True
         self.title = TITLE_FONT.render('Delivery Dash', False, '#ffffff')
         self.title_rect = self.title.get_rect(center = (WIDTH//2, 68))
@@ -442,6 +455,7 @@ class Main():
                     self.winning = False
                     self.running = False
                     pygame.quit()
+            # graphics
             SCREEN.fill('#1B4332')
             self.tab.draw(SCREEN)
             self.lobby_button.draw(SCREEN)
@@ -451,8 +465,9 @@ class Main():
             self.textRect = self.text.get_rect()
             self.textRect.center = (600,650)
             SCREEN.blit(self.text, self.textRect)
-            pygame.display.flip()
 
+            pygame.display.flip()
+    # unPauses the game #
     def run(self):
         self.pause = False
 
@@ -572,6 +587,11 @@ class Main():
 class running():
     def __init__(self, car_img):
         self.car_img = car_img
+    
+    # created so that the game can be played by running a button
+    # solved a circular import issue
     def run(self):
         game = Main(self.car_img)
         game.play()
+
+running(RED_CAR).run()

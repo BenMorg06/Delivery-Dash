@@ -1,11 +1,15 @@
+# IMPORTS #
 import pygame
 from consts import *
 from utils import Button, Quit
 from login import Login
 from highscore import Highscore
 
+# MENU #
 class Menu():
+    # INIT #
     def __init__(self):
+        # sets up objects
         self.screen = pygame.display.set_mode((WIDTH,HEIGHT))
         self.running = True
         self.login = Login()
@@ -16,6 +20,7 @@ class Menu():
         self.title = TITLE_FONT.render('Delivery Dash', False, '#ffffff')
         self.title_rect = self.title.get_rect(center = (WIDTH//2, 68))
 
+    # RUN #
     def run(self):
         # main menu loop
         while self.running:
@@ -23,7 +28,7 @@ class Menu():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     quit()
-
+            # graphics
             self.screen.fill('#1B4332') 
             self.start_button.draw(self.screen)
             self.quit_button.draw(self.screen)
@@ -36,6 +41,6 @@ class Menu():
             CLOCK.tick(FPS)
 
 
-
+# start up menu for the game
 menu = Menu()
 menu.run()

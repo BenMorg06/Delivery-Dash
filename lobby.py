@@ -1,10 +1,14 @@
+# IMPORTS #
 import pygame
 from consts import *
 from utils import *
 from main import *
 
+# LOBBY #
 class Lobby():
+    # INIT #
     def __init__(self):
+        # set screen and objects (images, rects, etc.)
         self.screen = pygame.display.set_mode((WIDTH,HEIGHT))
         self.running = True
         self.quit = Quit()
@@ -27,10 +31,13 @@ class Lobby():
         self.track_bg = pygame.Rect(WIDTH//2,250, WIDTH//5, HEIGHT//5)
         self.start_button = Button('Play',running(self.player_car[0]),150,60, (WIDTH//2 -250,425),6, 32)
 
+    # update the values sent to run the game (car image)
     def update_buttons(self):
         self.start_button = Button('Play',running(self.player_car[0]),150,60, (WIDTH//2 -250,425),6, 32)
 
+    # RUN #
     def run(self):
+
         while self.running:
             # quitting the game
             for event in pygame.event.get():
@@ -70,6 +77,8 @@ class Lobby():
             elif self.tab_index == 2:
                 self.screen.blit(self.highscore, self.highscore_rect)
                 self.quit_button.draw(self.screen)
+            # Shop Tab (PHASE TWO)
+                
             # Loop tabs
             elif self.tab_index <0:
                 self.tab_index = 2
