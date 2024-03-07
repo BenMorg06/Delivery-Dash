@@ -24,15 +24,18 @@ class Highscore():
         f = open('highscores.csv','r')
         scores = f.readlines()
         user_scores = {}
+        # sorts highscores into a dictionary
         while len(user_scores) != len(scores):
             highscore = 0
             user = ''
             for i in scores:
+                # makes sure the next entry in the dictionary is the highest score from a user not already there
                 if highscore < int(i.split(',')[1]) and i.split(',')[0] not in user_scores:
                     highscore = int(i.split(',')[1])
                     user = i.split(',')[0]
                 else: pass
             user_scores[user] = int(highscore)
+        # text for highscores
         self.first_user = FONT.render(f"{list(user_scores.keys())[0]} : {list(user_scores.values())[0]}", False, '#2D6A4F') #
         self.second_user = FONT.render(f"{list(user_scores.keys())[1]} : {list(user_scores.values())[1]}", False, '#2D6A4F') #
         self.third_user = FONT.render(f"{list(user_scores.keys())[2]} : {list(user_scores.values())[2]}", False, '#2D6A4F') #
