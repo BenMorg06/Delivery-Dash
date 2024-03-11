@@ -2,7 +2,6 @@ import pygame
 from consts import *
 from utils import *
 from validation import *
-from main import Main
 
 class Login():
     # LOGIN #

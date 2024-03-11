@@ -7,7 +7,6 @@ pygame.font.init()
 from consts import *
 from collections import deque
 from utils import *
-from options import *
 
 ##################################
 ############ SCREEN ##############
@@ -385,15 +384,31 @@ class Main():
 
         # pausing the game
         self.pause = False
+        self.options_menu = False
 
     # PAUSE GAME #
     def pause_game(self):
         # Set pause state True for the while loop
         self.pause = True
         # Create buttons
-        self.resume_button = Button('Resume',running,300,60, (WIDTH//2 -150,250),6, 32)
+        self.resume_button = Button('Resume',self,300,60, (WIDTH//2 -150,250),6, 32)
         self.quit_button = Button('Quit',Quit,300,60, (WIDTH//2 -150,450),6, 32)
-        self.options_button = Button('Options',Options(self),300,60, (WIDTH//2 -150,350),6, 32)
+        # options button
+        self.pressed = False
+        self.elevation = 6
+        self.dynamic_elevation = 6
+        self.original_y_pos = 350
+            # top rect
+        self.top_rect = pygame.Rect((WIDTH//2 -150, 350),(300,60))
+        self.top_color = '#52B788'
+            # bottom rect
+        self.bottom_rect = pygame.Rect((WIDTH//2 -150, 350),(300,6))
+        self.bottom_color = '#2D6A4F'
+            # text
+        font = pygame.font.Font('freesansbold.ttf', 32)
+        self.text_surf = font.render('Options',True,'#FFFFFF')
+        self.text_rect = self.text_surf.get_rect(center = self.top_rect.center)
+
 		# Create pause loop
         while self.pause:
 			# Account For Hitting Escape to unPause
@@ -406,14 +421,71 @@ class Main():
                     self.pause = False
                     self.running = False
                     pygame.quit()
+                
+            mouse_pos = pygame.mouse.get_pos()
+            # this logic ensures the button is only clicked once
+            if self.top_rect.collidepoint(mouse_pos):
+                self.top_color = '#D74B4B'
+                if pygame.mouse.get_pressed()[0]:
+                    self.dynamic_elevation = 0
+                    self.pressed = True
+                else:
+                    self.dynamic_elevation = self.elevation
+                    if self.pressed == True:
+                        self.pressed = False
+                        self.pause = False
+                        self.options()
+            else:
+                self.dynamic_elevation = self.elevation
+                self.top_color = '#52B788'
 
+
+            # DRAW #
+            SCREEN.fill((0,200,0))
+            SCREEN.blit(TRACK,(0,0))
+            self.player_car.draw(SCREEN)
+            self.pathfinder.car.draw(SCREEN)
+            for parcel in self.parcels:
+                parcel.draw(SCREEN)
             # Draw Buttons
             self.resume_button.draw(SCREEN)
             self.quit_button.draw(SCREEN)
-            self.options_button.draw(SCREEN)
+            self.top_rect.y = self.original_y_pos - self.dynamic_elevation
+            self.text_rect.center = self.top_rect.center
+            self.bottom_rect.midtop = self.top_rect.midtop
+            self.bottom_rect.height = self.top_rect.height + self.dynamic_elevation
+            pygame.draw.rect(SCREEN,self.bottom_color,self.bottom_rect, border_radius=12)
+            pygame.draw.rect(SCREEN, self.top_color, self.top_rect, border_radius=12)
+            SCREEN.blit(self.text_surf, self.text_rect)
+
 
             pygame.display.flip()
-    
+    # Options Menu
+    def options(self):
+        #print('options')
+        self.options_menu = True
+        self.resume_button = Button('Resume',self,300,60, (50,600),6, 32)
+        self.quit_button = Button('Quit',Quit,300,60, (WIDTH-350,600),6, 32)
+        while self.options_menu:
+            #print('looping')
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        self.pause = True
+                        self.pause_game()
+                if event.type == pygame.QUIT:
+                    self.pause = False
+                    self.running = False
+                    quit()
+
+
+            SCREEN.fill('#1B4332')
+            # draw buttons
+            
+            self.resume_button.draw(SCREEN)
+            self.quit_button.draw(SCREEN)    
+            pygame.display.flip()
+
     # WIN #
     def win(self, winner):
         # Import Lobby class
@@ -446,9 +518,12 @@ class Main():
         self.winning = True
         self.title = TITLE_FONT.render('Delivery Dash', False, '#ffffff')
         self.title_rect = self.title.get_rect(center = (WIDTH//2, 68))
-        self.lobby_button = Button('Lobby',Lobby(),300,60, (WIDTH//2 -150,250),6, 32)
-        self.quit_button = Button('Quit',Quit,300,60, (WIDTH//2 -150,450),6,32)
-        self.tab = Tabs(600,450,(WIDTH//2 -300 , HEIGHT//2 -200))
+        self.lobby_button = Button('Lobby',Lobby(),300,60, (WIDTH//2 -150,400),6, 32)
+        self.quit_button = Button('Quit',Quit,300,60, (WIDTH//2 -150,500),6,32)
+        self.tab = Tabs(600,450,(WIDTH//2 -300, HEIGHT//2 -200))
+        self.text = FONT.render(f"{winner} Won!", False, "#2D6A4F") #
+        self.textRect = self.text.get_rect()
+        self.textRect.center = (WIDTH//2,250)
         while self.winning:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -461,15 +536,13 @@ class Main():
             self.lobby_button.draw(SCREEN)
             self.quit_button.draw(SCREEN)
             SCREEN.blit(self.title, self.title_rect)
-            self.text = FONT.render(f"{winner} Won!", False, "#ffffff", (0,200,0)) #
-            self.textRect = self.text.get_rect()
-            self.textRect.center = (600,650)
             SCREEN.blit(self.text, self.textRect)
 
             pygame.display.flip()
     # unPauses the game #
     def run(self):
         self.pause = False
+        self.options_menu = False
 
     # CREATE PARCELS #
     def create_parcels(self):
@@ -598,4 +671,4 @@ class running():
         game = Main(self.car_img)
         game.play()
 
-#running(RED_CAR).run()
+running(RED_CAR).run()

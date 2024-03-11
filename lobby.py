@@ -114,7 +114,7 @@ class Lobby():
                 self.screen.blit(self.a_control, self.a_rect)
                 self.screen.blit(self.s_control, self.s_rect)
                 self.screen.blit(self.d_control, self.d_rect)
-                self.screen.blit(self.desc, self.desc_rect)
+                #self.screen.blit(self.desc, self.desc_rect)
                 self.quit_button.draw(self.screen)
             # Shop Tab (PHASE TWO)
                 
@@ -141,5 +141,5 @@ class Lobby():
             
             pygame.display.flip()
             CLOCK.tick(FPS)
-test = Lobby()
-test.run()
+#test = Lobby()
+#test.run()

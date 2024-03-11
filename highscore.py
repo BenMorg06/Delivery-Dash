@@ -3,7 +3,6 @@ import pygame
 from consts import *
 from utils import *
 from main import *
-from login import *
 
 # HIGHSCORE #
 class Highscore():
@@ -13,12 +12,14 @@ class Highscore():
         self.screen = pygame.display.set_mode((WIDTH,HEIGHT))
         self.running = True
         self.quit = Quit()
+        #self.login = Login()
         self.tab = Tabs(600,450,(WIDTH//2 -300 , HEIGHT//2 -200))
         self.title = TITLE_FONT.render('Delivery Dash', False, '#ffffff')
         self.title_rect = self.title.get_rect(center = (WIDTH//2, 68))
         self.highscore = TITLE_FONT.render('Highscore', False, '#2D6A4F')
         self.highscore_rect = self.highscore.get_rect(center =(WIDTH//2, 200))
         self.quit_button = Button('Quit',Quit,150,60, (WIDTH//2 +100 ,525),6, 32)
+        from login import Login
         self.back_button = Button("Login", Login(), 150,60,(WIDTH//2-250,525),6, 32)
 
     # Get Highscore #
