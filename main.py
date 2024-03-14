@@ -385,6 +385,15 @@ class Main():
         # pausing the game
         self.pause = False
         self.options_menu = False
+        self.volume = game_volume
+        self.sfx_volume = sfx_volume
+
+        pygame.mixer.init()
+        pygame.mixer.music.load(MENU_MUSIC)  # Replace with your audio file path
+        # Set the volume (0.0 to 1.0)
+        pygame.mixer.music.set_volume(game_volume)
+        # Play the music on loop
+        pygame.mixer.music.play(-1)
 
     # PAUSE GAME #
     def pause_game(self):
@@ -434,6 +443,7 @@ class Main():
                     if self.pressed == True:
                         self.pressed = False
                         self.pause = False
+                        CLICK.play()
                         self.options()
             else:
                 self.dynamic_elevation = self.elevation
@@ -466,6 +476,12 @@ class Main():
         self.options_menu = True
         self.resume_button = Button('Resume',self,300,60, (50,600),6, 32)
         self.quit_button = Button('Quit',Quit,300,60, (WIDTH-350,600),6, 32)
+        self.increase_vol_arrow = OptionsArrows(((WIDTH//2 + 320,HEIGHT//2 - 25),(WIDTH//2 + 320,HEIGHT//2 + 25),(WIDTH//2 + 350,HEIGHT//2)),(WIDTH//2 +320, HEIGHT//2 -25), IncreaseVol)
+        self.decrease_vol_arrow = OptionsArrows(((WIDTH//2 - 320,HEIGHT//2 - 25),(WIDTH//2 -320,HEIGHT//2 + 25),(WIDTH//2 - 350,HEIGHT//2)),(WIDTH//2 -350, HEIGHT//2 -25), DecreaseVol)
+        self.increase_sfx_arrow = OptionsArrows(((WIDTH//2 + 320,HEIGHT//2 - 125),(WIDTH//2 + 320,HEIGHT//2  -75),(WIDTH//2 + 350,HEIGHT//2-100)),(WIDTH//2 +320, HEIGHT//2 -125), IncreaseVol)
+        self.decrease_sfx_arrow = OptionsArrows(((WIDTH//2 - 320,HEIGHT//2 - 125),(WIDTH//2 -320,HEIGHT//2  - 75),(WIDTH//2 - 350,HEIGHT//2-100)),(WIDTH//2 -350, HEIGHT//2 -125), DecreaseVol)
+        self.optionsTitle = TITLE_FONT.render('Options', False, '#ffffff')
+        self.optionsRect = self.optionsTitle.get_rect(center = (WIDTH//2, 150))
         while self.options_menu:
             #print('looping')
             for event in pygame.event.get():
@@ -480,10 +496,28 @@ class Main():
 
 
             SCREEN.fill('#1B4332')
+            SCREEN.blit(self.optionsTitle,self.optionsRect)
             # draw buttons
-            
+            self.increase_vol_arrow.draw(SCREEN, self.volume)
+            self.volume = self.increase_vol_arrow.update_vol()
+            self.decrease_vol_arrow.draw(SCREEN, self.volume)
+            self.volume = self.decrease_vol_arrow.update_vol()
+            self.increase_sfx_arrow.draw(SCREEN, self.sfx_volume)
+            self.sfx_volume = self.increase_sfx_arrow.update_vol()
+            self.decrease_sfx_arrow.draw(SCREEN, self.sfx_volume)
+            self.sfx_volume = self.decrease_sfx_arrow.update_vol()
+            pygame.mixer.music.set_volume(self.volume)
+            CLICK.set_volume(self.sfx_volume)
+            CARS_SFX.set_volume(self.sfx_volume)
             self.resume_button.draw(SCREEN)
             self.quit_button.draw(SCREEN)    
+            # f string for volume
+            self.volumeText = FONT.render(f"Music Volume: {math.trunc(100*(self.volume))}%", False, "#2D6A4F") #
+            self.volumeRect = self.volumeText.get_rect(center = (WIDTH//2,350))
+            self.sfxText = FONT.render(f"SFX Volume: {math.trunc(100*(self.sfx_volume))}%", False, "#2D6A4F") #
+            self.sfxRect = self.volumeText.get_rect(center = (WIDTH//2,250))
+            SCREEN.blit(self.volumeText, self.volumeRect)
+            SCREEN.blit(self.sfxText, self.sfxRect)
             pygame.display.flip()
 
     # WIN #
@@ -566,10 +600,12 @@ class Main():
     def play(self):
         self.create_parcels()
         self.pathfinder = Pathfinder(TRACK_GRID,self.parcels)
+        CARS_SFX.play(-1)
 
         # MAIN LOOP #
         while self.running:
-            
+            CLICK.set_volume(self.sfx_volume)
+            CARS_SFX.set_volume(self.sfx_volume)
             # EVENT LOOP #
             event = pygame.event.poll()
 
@@ -582,8 +618,10 @@ class Main():
                     if self.pause:
                         self.pause = False
                     else:
+                        CARS_SFX.stop()
+                        CLICK.play()
                         self.pause_game()
-                else: pass
+                else: CARS_SFX.play(-1)
             
                 if event.key == pygame.K_a:
                     self.player_car.rotate(left=True)

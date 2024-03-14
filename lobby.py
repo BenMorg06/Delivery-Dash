@@ -90,14 +90,17 @@ class Lobby():
                 if self.red_car_rect.collidepoint(pygame.mouse.get_pos()):
                     pygame.draw.rect(self.screen, (255,0,0),self.red_car_rect,2)
                     if pygame.mouse.get_pressed()[0]:
+                        CLICK.play()
                         self.player_car = [self.red_car_image, self.red_car_rect]
                 if self.blue_car_rect.collidepoint(pygame.mouse.get_pos()):
                     pygame.draw.rect(self.screen, (255,0,0),self.blue_car_rect,2)
                     if pygame.mouse.get_pressed()[0]:
+                        CLICK.play()
                         self.player_car = [self.blue_car_image, self.blue_car_rect]
                 if self.green_car_rect.collidepoint(pygame.mouse.get_pos()):
                     pygame.draw.rect(self.screen, (255,0,0),self.green_car_rect,2)
                     if pygame.mouse.get_pressed()[0]:
+                        CLICK.play()
                         self.player_car = [self.green_car_image, self.green_car_rect]
                 self.update_buttons()
             # Highscore Tab

@@ -53,8 +53,7 @@ class Button():
                 if self.pressed == True:
                     self.pressed = False
                     self.action.run()
-                    
-                    
+                           
         else:
             self.dynamic_elevation = self.elevation
             self.top_color = '#52B788'
@@ -122,6 +121,7 @@ class TextBox():
             else:
                 self.dynamic_elevation = self.elevation
                 if self.pressed == True:
+                    CLICK.play()
                     self.top_color = '#D74B4B'
                     
                     
@@ -186,11 +186,13 @@ class Arrows():
             else:
                 if self.pressed == True:
                     self.pressed = False
+                    CLICK.play()                   
                     self.tab_index = self.action.run(self.tab_index)
         else:
             self.top_color = '#52B788'
     
     def update_tab(self):
+        #print(self.tab_index)
         return self.tab_index
     # draw the buttons
     def draw(self, screen, tab_index):
@@ -198,6 +200,33 @@ class Arrows():
         self.tab_index = tab_index
         self.on_click()
         #pygame.draw.rect(screen, self.top_color, self.polygon_rect)
+
+class OptionsArrows(Arrows):
+    def __init__(self,points,pos,action):
+        super().__init__(points,pos,action)
+
+    def on_click(self):
+        mouse_pos = pygame.mouse.get_pos()
+        # this logic ensures the button is only clicked once
+        if self.polygon_rect.collidepoint(mouse_pos):
+            self.top_color = '#D74B4B'
+            if pygame.mouse.get_pressed()[0]:
+                self.pressed = True
+            else:
+                if self.pressed == True:
+                    self.pressed = False
+                    CLICK.play()
+                    self.volume = self.action.run(self.volume)
+        else:
+            self.top_color = '#52B788'
+
+    def update_vol(self):
+        return self.volume
+    
+    def draw(self, screen, volume):
+        pygame.draw.polygon(screen,self.top_color, self.points)
+        self.volume = volume
+        self.on_click()
 
 class TabIncrease():
     def __init__():
@@ -226,3 +255,30 @@ def get_highscore():
                 else: pass
             user_scores[user] = int(highscore)
         return user_scores
+
+class IncreaseVol():
+    def __init__():
+        pass
+    def run(volume):
+        if volume <=1 and volume >= 0:
+            if volume+0.1 > 1: 
+                return 1
+            return (10*(volume)+1)/10
+        elif volume >1:
+            return 1
+        else:
+            return 0
+
+class DecreaseVol():
+    def __init__():
+        pass
+    def run(volume):
+        if volume <=1 and volume >= 0:
+            if volume-0.1 < 0:
+                return 0
+            return (10*(volume)-1)/10
+        elif volume >1:
+            return 1
+        else:
+            return 0
+

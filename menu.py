@@ -19,6 +19,12 @@ class Menu():
         self.highscore_button = Button('Highscore',Highscore(),300,60, (WIDTH//2 -150,350),6, 32)
         self.title = TITLE_FONT.render('Delivery Dash', False, '#ffffff')
         self.title_rect = self.title.get_rect(center = (WIDTH//2, 68))
+        pygame.mixer.init()
+        pygame.mixer.music.load(MENU_MUSIC)  # Replace with your audio file path
+        # Set the volume (0.0 to 1.0)
+        pygame.mixer.music.set_volume(volume)
+        # Play the music on loop
+        pygame.mixer.music.play(-1)
 
     # RUN #
     def run(self):

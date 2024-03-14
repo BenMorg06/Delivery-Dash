@@ -9,6 +9,16 @@ HEIGHT, WIDTH = 700, 1244
 CLOCK = pygame.time.Clock()
 FPS = 60
 
+# Music
+MENU_MUSIC = "audio/stranger-things-124008.mp3"
+volume = 0.5
+game_volume = 0.3
+
+# SFX
+CLICK = pygame.mixer.Sound(os.path.join("audio","click_003.ogg"))
+CARS_SFX = pygame.mixer.Sound(os.path.join("audio","city-ambience-9272.mp3"))
+sfx_volume = 0.5
+
 # Image constants
 TRACK = pygame.image.load(os.path.join("Assets","city map 1.png"))
 TRACK_BORDER = pygame.image.load(os.path.join("Assets", "map_grass.png")) # draw with rectangles potentially
