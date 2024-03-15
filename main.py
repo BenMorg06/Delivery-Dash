@@ -7,6 +7,7 @@ pygame.font.init()
 from consts import *
 from collections import deque
 from utils import *
+#from test import *
 
 ##################################
 ############ SCREEN ##############
@@ -369,6 +370,10 @@ class Main():
 
         # Instantiating player car
         self.player_car = PlayerCar(1,2,car_img)
+        #self.player_car_outline = generate_outline([self.player_car.img],50,50)
+
+        # track border mask check
+        #self.track_border_outline = generate_outline([TRACK_BORDER],50,50)
 
         # Create Text
         self.text = FONT.render(f"Score: {self.player_car.points}", False, "#ffffff", (0,200,0)) # 
@@ -657,7 +662,10 @@ class Main():
             # DRAW #
             SCREEN.fill((0,200,0))
             SCREEN.blit(TRACK,(0,0))
+            #SCREEN.blit(self.track_border_outline[0],(0,0))
             self.player_car.draw(SCREEN)
+            #SCREEN.blit(self.player_car_outline[0],(self.player_car.x, self.player_car.y))
+            
 
 
             # UPDATES #
