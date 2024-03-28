@@ -118,10 +118,11 @@ class TextBox():
                 self.pressed = True
                 self.text = ''
                 self.value = ''
+                CLICK.play()
+
             else:
                 self.dynamic_elevation = self.elevation
                 if self.pressed == True:
-                    CLICK.play()
                     self.top_color = '#D74B4B'
                     
                     

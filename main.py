@@ -676,7 +676,7 @@ class Main():
                 parcel.update()
             
             # FIND PATH #
-            if not self.pathfinder.car.haspath and self.parcels:
+            if (not self.pathfinder.car.haspath and self.parcels):
                 # AI car doesn't have a path, calculate the new path
                 start = self.pathfinder.get_start()
                 target = self.pathfinder.get_end(self.parcels)
@@ -686,11 +686,11 @@ class Main():
                 #print(shortest_path)
                 self.pathfinder.car.set_path(shortest_path)
                 self.pathfinder.car.haspath = True
-                if self.pathfinder.car.pos == (target[1],target[0]):
-                    self.pathfinder.car.haspath = False
-                else: pass
                 #print(TRACK_GRID)
-
+            #print(self.pathfinder.car.pos[1]//48,self.pathfinder.car.pos[0]//48, target[1], target[0])
+            if (self.pathfinder.car.pos[1]//48,self.pathfinder.car.pos[0]//48) == (target[1],target[0]):
+                self.pathfinder.car.haspath = False
+            else: pass
             # TEXT #
             if self.player_car.points > self.pathfinder.car.points and self.player_car.points + self.pathfinder.car.points == 5:
                 self.win('PLAYER')
