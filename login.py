@@ -12,8 +12,10 @@ class Login():
         self.username_box = TextBox('Username',300,60, (WIDTH//2 -150, 250), 6, 32)
         self.password_box = TextBox('Password',300,60, (WIDTH//2 -150, 350), 6, 32)
         self.quit_button = Button('Quit',Quit,300,60, (WIDTH//2 -150,550),6, 32)
-        self.login_button = Button('Login',Validation('users_pass.csv',self.username_box.value, self.password_box.value),140,60, (WIDTH//2 -150,450),6, 26)
-        self.new_user_button = Button('New User',NewUser('users_pass.csv',self.username_box.value, self.password_box.value),140,60, (WIDTH//2 +10,450),6, 26)
+        self.validate = Validation('users_pass.csv',self.username_box.value, self.password_box.value)
+        self.new_user_validation = NewUser('users_pass.csv',self.username_box.value, self.password_box.value)
+        self.login_button = Button('Login',self.validate,140,60, (WIDTH//2 -150,450),6, 26)
+        self.new_user_button = Button('New User',self.new_user_validation,140,60, (WIDTH//2 +10,450),6, 26)
         self.title = TITLE_FONT.render('Delivery Dash', False, '#ffffff')
         self.title_rect = self.title.get_rect(center = (WIDTH//2, 68))
     
@@ -21,9 +23,10 @@ class Login():
     def update_buttons(self):
         #print(self.password_box.value)
         # updates the values sent to validation and new user classes
-        self.login_button = Button('Login',Validation('users_pass.csv',self.username_box.value, self.password_box.value),140,60, (WIDTH//2 -150,450),6, 26)
-        self.new_user_button = Button('New User',NewUser('users_pass.csv',self.username_box.value, self.password_box.value),140,60, (WIDTH//2 +10,450),6, 26)
-
+        self.validate = Validation('users_pass.csv',self.username_box.value, self.password_box.value)
+        self.new_user_validation = NewUser('users_pass.csv',self.username_box.value, self.password_box.value)
+        self.login_button = Button('Login',self.validate,140,60, (WIDTH//2 -150,450),6, 26)
+        self.new_user_button = Button('New User',self.new_user_validation,140,60, (WIDTH//2 +10,450),6, 26)
     # RUN #
     def run(self):
         while self.running: 
@@ -67,7 +70,8 @@ class Login():
                         self.password_box.text += '*'
                     # repeated code for password box could be made into a function instead
                         
-                    
+            login_texts = self.validate.text_update() 
+            user_texts = self.new_user_validation.text_update()
             #print(self.password_box.value)
             # graphics
             self.screen.fill('#1B4332') 
@@ -79,6 +83,19 @@ class Login():
         
             # draw the title
             self.screen.blit(self.title, self.title_rect)
+            # Write Error messages
+            if login_texts[4]:
+                self.screen.blit(login_texts[0], login_texts[1])
+
+            elif login_texts[5]:
+                self.screen.blit(login_texts[2], login_texts[3])
+            
+            if user_texts[4]:
+                self.screen.blit(user_texts[0], user_texts[1])
+
+            elif user_texts[5]:
+                self.screen.blit(user_texts[2], user_texts[3])
+            
             
             
             pygame.display.flip()

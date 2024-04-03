@@ -717,4 +717,4 @@ class running():
         game = Main(self.car_img)
         game.play()
 
-running(RED_CAR).run()
+#running(RED_CAR).run()
