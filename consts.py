@@ -4,8 +4,10 @@ pygame.init()
 
 # Screen constants
 HEIGHT, WIDTH = 700, 1244
+# DO NOT REDUCE HEIGHT AND WIDTH VALUES AS THE GAME WILL NOT RENDER PROPERLY
 
-# Pygame Constants
+
+# Pygame Constantss
 CLOCK = pygame.time.Clock()
 FPS = 60
 

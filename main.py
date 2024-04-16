@@ -376,13 +376,16 @@ class Main():
         #self.track_border_outline = generate_outline([TRACK_BORDER],50,50)
 
         # Create Text
-        self.text = FONT.render(f"Score: {self.player_car.points}", False, "#ffffff", (0,200,0)) # 
+        self.text = FONT.render(f"Player Score: {self.player_car.points}", False, "#ffffff", (0,200,0)) # 
         self.textRect = self.text.get_rect()
-        self.text2 = FONT.render(f'Score: {self.player_car.points}', False, "#ffffff", (0,200,0)) #
+        self.text2 = FONT.render(f'AI Score: {self.player_car.points}', False, "#ffffff", (0,200,0)) #
         self.textRect2 = self.text2.get_rect()
+        self.esc_text = FONT.render(f'Press Esc to Pause', False, "#ffffff", (0,200,0)) #
+        self.esc_text_rect = self.esc_text.get_rect()
         # Set the center of the rectangular object.
         self.textRect.center = (600,650)
-        self.textRect2.center = (600, 675)
+        self.textRect2.center = (600, 680)
+        self.esc_text_rect.topright = (1244,0)
 
         # creating parcels list
         self.parcels = pygame.sprite.Group()
@@ -492,6 +495,7 @@ class Main():
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
+                        self.options_menu = False
                         self.pause = True
                         self.pause_game()
                 if event.type == pygame.QUIT:
@@ -697,10 +701,11 @@ class Main():
             elif self.player_car.points < self.pathfinder.car.points and self.player_car.points + self.pathfinder.car.points == 5:
                 self.win('AI')
             
-            text = FONT.render(f"Score: {self.player_car.points}", False, "#ffffff", (0,200,0))
-            text2 = FONT.render(f"Score: {self.pathfinder.car.points}", False, "#ffffff", (0,200,0))
+            text = FONT.render(f"Player Score: {self.player_car.points}", False, "#ffffff", (0,200,0))
+            text2 = FONT.render(f"AI Score: {self.pathfinder.car.points}", False, "#ffffff", (0,200,0))
             SCREEN.blit(text, self.textRect)
             SCREEN.blit(text2, self.textRect2)
+            SCREEN.blit(self.esc_text,self.esc_text_rect)
 
             # UPDATE SCREEN #
             CLOCK.tick(FPS) # limit fps 
@@ -717,4 +722,4 @@ class running():
         game = Main(self.car_img)
         game.play()
 
-#running(RED_CAR).run()
+running(RED_CAR).run()
